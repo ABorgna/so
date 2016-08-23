@@ -7,45 +7,54 @@ MAIN=simusched
 
 OUT_DIR=out
 
+EJERCICIOS_N = 1 2 3 4 5 6 7 8 9
+EJERCICIOS = $(EJERCICIOS_N:%=ejercicio%)
+
 .PHONY: all clean new
 all: $(OUT_DIR) $(MAIN)
+
+ejercicios: $(EJERCICIOS)
 
 $(MAIN): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 ejercicio1: $(MAIN) tasks/ej1.tsk
-	./simusched tasks/lote.tsk 1 1 1 SchedFCFS \
+	./simusched tasks/ej1.tsk 1 1 1 SchedFCFS \
 		| python2 ./graphsched.py > $(OUT_DIR)/ej1.png
 
-ejercicio2:
+ejercicio2: $(MAIN) tasks/ej2.tsk
+	./simusched tasks/ej2.tsk 1 1 2 SchedFCFS 1 \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej2.1.png
+	./simusched tasks/ej2.tsk 2 1 2 SchedFCFS 2 \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej2.2.png
+	./simusched tasks/ej2.tsk 4 1 2 SchedFCFS 4 \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej2.4.png
+
+ejercicio3: $(MAIN)
 	@echo "No implementado"
 	@exit 1
 
-ejercicio3:
+ejercicio4: $(MAIN)
 	@echo "No implementado"
 	@exit 1
 
-ejercicio4:
+ejercicio5: $(MAIN)
 	@echo "No implementado"
 	@exit 1
 
-ejercicio5:
+ejercicio6: $(MAIN)
 	@echo "No implementado"
 	@exit 1
 
-ejercicio6:
+ejercicio7: $(MAIN)
 	@echo "No implementado"
 	@exit 1
 
-ejercicio7:
+ejercicio8: $(MAIN)
 	@echo "No implementado"
 	@exit 1
 
-ejercicio8:
-	@echo "No implementado"
-	@exit 1
-
-ejercicio9:
+ejercicio9: $(MAIN)
 	@echo "No implementado"
 	@exit 1
 

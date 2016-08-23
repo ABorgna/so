@@ -21,6 +21,16 @@ void TaskAlterno(int pid,
     }
 }
 
+void TaskConsola(int pid,
+                 vector<int> params) {  // params: n, bmin, bmax
+    int n = params[0], bmin = params[1], bmax = params[2];
+    for(int i=0; i<n; i++) {
+        int t = bmin + rand() % (bmax - bmin);
+        uso_IO(pid,t);
+        uso_CPU(pid,1);
+    }
+}
+
 void tasks_init(void) {
     /* Todos los tipos de tareas se deben registrar acá para poder ser usadas.
      * El segundo parámetro indica la cantidad de parámetros que recibe la tarea
@@ -29,4 +39,5 @@ void tasks_init(void) {
     register_task(TaskCPU, 1);
     register_task(TaskIO, 2);
     register_task(TaskAlterno, -1);
+    register_task(TaskConsola, 3);
 }
