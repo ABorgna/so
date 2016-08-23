@@ -6,8 +6,8 @@ import re, sys, os
 from PIL import Image, ImageDraw, ImageFont
 
 # Font search paths and acceptable names. Order matters.
-FONT_DIRS = "/usr/share/fonts/truetype/freefont", "/usr/lib/fonts/", "/Library/Fonts"
-FONT_NAMES = "FreeMono.ttf", "Andale Mono.ttf", "Arial Black.ttf", "Hei.ttf.ttf", "Courier New.ttf"
+FONT_DIRS = "/usr/share/fonts/TTF", "/usr/share/fonts/truetype/freefont", "/usr/lib/fonts/", "/Library/Fonts"
+FONT_NAMES = "Inconsolata-Regular.ttf", "FreeMono.ttf", "Andale Mono.ttf", "Arial Black.ttf", "Hei.ttf.ttf", "Courier New.ttf"
 
 def findfont(names=FONT_NAMES, dirs=FONT_DIRS):
 	"""Return first existing path or None."""
@@ -253,7 +253,7 @@ def drawGantt(data, fout, rg=3, width=1024, height=600, fontpath=None, settings=
 				else:
 					draw.rectangle((x,uy-1,nx,by+1), fill=COLORS[st][0])
 					draw.rectangle((x+1-(2 if extend else 0),uy,nx-2,by), fill=COLORS[st][1])
-					if unloadedx <> -1:
+					if unloadedx != -1:
 						if pids[i] >= 0:
 							dist = (x-unloadedx)/2
 							draw.text((unloadedx + dist -2, by-16), str(loadedj), font=font, fill=COLOR_BLACK)
@@ -274,7 +274,7 @@ def drawGantt(data, fout, rg=3, width=1024, height=600, fontpath=None, settings=
 	if isinstance(fout, str):
 		dr = os.path.dirname(fout)
 		if dr != "" and not os.path.isdir(dr):
-			os.makedirs(dr, 0755)
+			os.makedirs(dr, 0o755)
 
 	img.save(fout, "PNG")
 	#img.resize(((png_box+1)*n-1, png_box), Image.ANTIALIAS).save(pngfn, "PNG")

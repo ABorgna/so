@@ -5,16 +5,47 @@ LDFLAGS= -lpthread
 OBJS=main.o simu.o basesched.o basetask.o tasks.o sched_rr.o sched_fcfs.o sched_sjf.o sched_rsjf.o sched_mfq.o
 MAIN=simusched
 
-EJERCICIOSN = 1 2 3 4 5 6 7 8 9
-EJERCICIOS=$(EJERCICIOSN:%=ejercicio%)
+OUT_DIR=out
 
 .PHONY: all clean new
-all: $(MAIN)
+all: $(OUT_DIR) $(MAIN)
 
 $(MAIN): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(EJERCICIOS):
+ejercicio1: $(MAIN) tasks/ej1.tsk
+	./simusched tasks/lote.tsk 1 1 1 SchedFCFS \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej1.png
+
+ejercicio2:
+	@echo "No implementado"
+	@exit 1
+
+ejercicio3:
+	@echo "No implementado"
+	@exit 1
+
+ejercicio4:
+	@echo "No implementado"
+	@exit 1
+
+ejercicio5:
+	@echo "No implementado"
+	@exit 1
+
+ejercicio6:
+	@echo "No implementado"
+	@exit 1
+
+ejercicio7:
+	@echo "No implementado"
+	@exit 1
+
+ejercicio8:
+	@echo "No implementado"
+	@exit 1
+
+ejercicio9:
 	@echo "No implementado"
 	@exit 1
 
@@ -27,7 +58,11 @@ simu.o: simu.cpp simu.h basetask.h basesched.h
 simusched.o: simusched.cpp basetask.h basesched.h tasks.h
 tasks.o: tasks.cpp tasks.h basetask.h
 
+$(OUT_DIR):
+	mkdir -p $@
+
 clean:
+	rm -fr out/*
 	rm -f $(OBJS) $(MAIN)
 
 new: clean all

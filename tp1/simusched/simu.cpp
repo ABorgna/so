@@ -262,7 +262,7 @@ void simulate(SchedBase& sch, std::vector<ptsk>& lote,
                              << " but that process has exited." << endl;
                         return;
                     }
-                    if (!(tsks[npid].blk == ST_IO)) {
+                    if ((!tsks[npid].blk) == ST_IO) {
                         cerr << "Error!, scheduler sent pid=" << npid
                              << " but that process is still blocked." << endl;
                         return;
