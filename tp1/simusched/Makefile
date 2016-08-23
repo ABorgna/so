@@ -10,7 +10,7 @@ OUT_DIR=out
 EJERCICIOS_N = 1 2 3 4 5 6 7 8 9
 EJERCICIOS = $(EJERCICIOS_N:%=ejercicio%)
 
-.PHONY: all clean new
+.PHONY: all clean new $(EJERCICIOS)
 all: $(OUT_DIR) $(MAIN)
 
 ejercicios: $(EJERCICIOS)
@@ -30,9 +30,9 @@ ejercicio2: $(MAIN) tasks/ej2.tsk
 	./simusched tasks/ej2.tsk 4 1 2 SchedFCFS 4 \
 		| python2 ./graphsched.py > $(OUT_DIR)/ej2.4.png
 
-ejercicio3: $(MAIN)
-	@echo "No implementado"
-	@exit 1
+ejercicio3: $(MAIN) tasks/ej3.tsk
+	./simusched tasks/ej3.tsk 1 1 1 SchedFCFS \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej3.png
 
 ejercicio4: $(MAIN)
 	@echo "No implementado"

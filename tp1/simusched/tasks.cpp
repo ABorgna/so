@@ -1,4 +1,5 @@
 #include "tasks.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -21,13 +22,40 @@ void TaskAlterno(int pid,
     }
 }
 
-void TaskConsola(int pid,
-                 vector<int> params) {  // params: n, bmin, bmax
+void TaskConsola(int pid, vector<int> params) {  // params: n, bmin, bmax
     int n = params[0], bmin = params[1], bmax = params[2];
-    for(int i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
         int t = bmin + rand() % (bmax - bmin);
-        uso_IO(pid,t);
-        uso_CPU(pid,1);
+        uso_IO(pid, t);
+        uso_CPU(pid, 1);
+    }
+}
+
+void TaskBatch(int pid, vector<int> params) {  // params: total_cpu, cant_bloqueos
+    int time = params[0], bloqueos = params[1];
+
+    // El proceso siempre consume un tiempo al terminar
+    int tiempoALlenar = time-bloqueos-1;
+
+    vector<int> tiempos;
+
+    for(int i=0; i<bloqueos; i++) {
+        tiempos.push_back(rand() % (tiempoALlenar + 1));
+    }
+
+    sort(tiempos.begin(), tiempos.end());
+
+    int timeCounter = 0;
+    for(auto it=tiempos.begin(); it != tiempos.end(); it++) {
+        if(timeCounter < *it) {
+            uso_CPU(pid, *it-timeCounter);
+            timeCounter = *it;
+        }
+        uso_IO(pid, 2);
+    }
+
+    if(timeCounter < tiempoALlenar) {
+        uso_CPU(pid, tiempoALlenar-timeCounter);
     }
 }
 
@@ -40,4 +68,5 @@ void tasks_init(void) {
     register_task(TaskIO, 2);
     register_task(TaskAlterno, -1);
     register_task(TaskConsola, 3);
+    register_task(TaskBatch, 2);
 }
