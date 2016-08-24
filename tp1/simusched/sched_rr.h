@@ -20,7 +20,6 @@ class SchedRR : public SchedBase {
 
    private:
     std::queue<int> q;
-    std::set<int> vacios;             //Conj de cores que no están ejecutando nada
     std::vector<int> quantum_total;    //Vector de cores con sus longitudes de quantums
     std::vector<int> quantum_restante; //Vector de cores con estado actual de quantums
 };
