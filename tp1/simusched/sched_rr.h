@@ -4,15 +4,10 @@
 #include <algorithm>
 #include <queue>
 #include <vector>
-#include <map>
+#include <set>
 #include "basesched.h"
 
 using namespace std;
-
-typedef struct Dato_t {
-    int core;
-    bool bloqueada;
-} Dato;
 
 class SchedRR : public SchedBase {
    public:
@@ -25,7 +20,9 @@ class SchedRR : public SchedBase {
 
    private:
     std::queue<int> q;
-    std::map<int, Dato> estados;
+    std::set<int> vacios;             //Conj de cores que no están ejecutando nada
+    std::vector<int> quantum_total;    //Vector de cores con sus longitudes de quantums
+    std::vector<int> quantum_restante; //Vector de cores con estado actual de quantums
 };
 
 #endif
