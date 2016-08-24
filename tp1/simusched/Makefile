@@ -38,9 +38,13 @@ ejercicio4: $(MAIN) tasks/ej4.tsk
 	./simusched tasks/ej4.tsk 1 1 1 SchedRR 4 \
 		| python2 ./graphsched.py > $(OUT_DIR)/ej4.png
 
-ejercicio5: $(MAIN)
-	@echo "No implementado"
-	@exit 1
+ejercicio5: $(MAIN) tasks/ej4.tsk
+	./simusched tasks/ej5.tsk 1 2 1 SchedRR 2 \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5.2.png
+	./simusched tasks/ej5.tsk 1 2 1 SchedRR 5 \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5.5.png
+	./simusched tasks/ej5.tsk 1 2 1 SchedRR 10 \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5.10.png
 
 ejercicio6: $(MAIN)
 	@echo "No implementado"
