@@ -23,12 +23,12 @@ ejercicio1: $(MAIN) tasks/ej1.tsk
 		| python2 ./graphsched.py > $(OUT_DIR)/ej1.png
 
 ejercicio2: $(MAIN) tasks/ej2.tsk
-	./simusched tasks/ej2.tsk 1 1 2 SchedFCFS \
-		| python2 ./graphsched.py > $(OUT_DIR)/ej2.1.png
-	./simusched tasks/ej2.tsk 2 1 2 SchedFCFS \
-		| python2 ./graphsched.py > $(OUT_DIR)/ej2.2.png
-	./simusched tasks/ej2.tsk 4 1 2 SchedFCFS \
-		| python2 ./graphsched.py > $(OUT_DIR)/ej2.4.png
+	./simusched tasks/ej2.tsk 1 2 2 SchedFCFS \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej2-1.png
+	./simusched tasks/ej2.tsk 2 2 2 SchedFCFS \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej2-2.png
+	./simusched tasks/ej2.tsk 4 2 2 SchedFCFS \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej2-4.png
 
 ejercicio3: $(MAIN) tasks/ej3.tsk
 	./simusched tasks/ej3.tsk 1 1 1 SchedFCFS \
@@ -38,13 +38,13 @@ ejercicio4: $(MAIN) tasks/ej4.tsk
 	./simusched tasks/ej4.tsk 1 1 1 SchedRR 4 \
 		| python2 ./graphsched.py > $(OUT_DIR)/ej4.png
 
-ejercicio5: $(MAIN) tasks/ej4.tsk
+ejercicio5: $(MAIN) tasks/ej5.tsk
 	./simusched tasks/ej5.tsk 1 2 1 SchedRR 2 \
-		| python2 ./graphsched.py > $(OUT_DIR)/ej5.2.png
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5-2.png
 	./simusched tasks/ej5.tsk 1 2 1 SchedRR 5 \
-		| python2 ./graphsched.py > $(OUT_DIR)/ej5.5.png
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5-5.png
 	./simusched tasks/ej5.tsk 1 2 1 SchedRR 10 \
-		| python2 ./graphsched.py > $(OUT_DIR)/ej5.10.png
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5-10.png
 
 ejercicio6: $(MAIN)
 	@echo "No implementado"

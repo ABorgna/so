@@ -200,6 +200,9 @@ int main(int argc, char *argv[]) {
     if (rc != 0)
         return rc;
 
+    // Inicializamos rand con una seed así tenemos siempre los mismos resultados
+    srand(0xDEADBEEF);
+
     // Obtengo el scheduler a usar.
     SchedBase *scheduler =
         sched_create(settings.sched_class.c_str(), settings.sched_args);

@@ -1,2 +1,73 @@
 \section{Ejercicio 2}
 
+Podemos calcular la latencia de cada tarea como el tiempo desde que se carga hasta que comienza a ejecutarse y el throughput final como la cantidad de tareas ejecutadas dividida el tiempo total de ejecución.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{ej2-1}
+    \caption{TaskConsola con n=4, bmin=1 y bmax=8}
+    \label{fig:ej2.1}
+\end{figure}
+
+En la figura \ref{fig:ej2.1}, utilizando un solo nucleo, conseguimos un throughput de $\frac{4}{64} = 0.0625$.
+
+Las latencias se detallan a continuación.
+
+\begin{center}
+    \begin{tabular}{| l | l |}
+        \hline
+        Tarea & Latencia \\ \hline
+        0 & 2 \\
+        1 & 9 \\
+        2 & 30 \\
+        3 & 46 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{ej2-2}
+    \caption{TaskConsola con n=4, bmin=1 y bmax=8}
+    \label{fig:ej2.2}
+\end{figure}
+
+En la figura \ref{fig:ej2.2}, utilizando 2 nucleos, conseguimos un throughput de $\frac{4}{39} = 0.1026$.
+
+Las latencias se detallan a continuación.
+
+\begin{center}
+    \begin{tabular}{| l | l |}
+        \hline
+        Tarea & Latencia \\ \hline
+        0 & 2 \\
+        1 & 2 \\
+        2 & 8 \\
+        3 & 21 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{ej2-4}
+    \caption{TaskConsola con n=4, bmin=1 y bmax=8}
+    \label{fig:ej2.4}
+\end{figure}
+
+En la figura \ref{fig:ej2.4}, utilizando 4 nucleos, conseguimos un throughput de $\frac{4}{27} = 0.1481$.
+
+Las latencias se detallan a continuación.
+
+\begin{center}
+    \begin{tabular}{| l | l |}
+        \hline
+        Tarea & Latencia \\ \hline
+        0 & 2 \\
+        1 & 2 \\
+        2 & 2 \\
+        3 & 2 \\
+        \hline
+    \end{tabular}
+\end{center}
+
