@@ -15,7 +15,6 @@
 \usepackage{array}
 \usepackage{xcolor,colortbl}
 \usepackage{amsthm}
-\usepackage{listings}
 \usepackage{soul}
 \usepackage[titletoc]{appendix}
 \usepackage{pgf}
@@ -25,9 +24,15 @@
 \usepackage{wrapfig}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{float}
+\usepackage{listingsutf8}
 
 
 %\usepackage{minted}
+
+\graphicspath{ {../simusched/out/} }
+
+\definecolor{litegrey}{gray}{0.94}
 
 %Formato de los links
 \usepackage{hyperref}
@@ -36,6 +41,20 @@
   urlcolor     = blue, %Colour for external hyperlinks
   linkcolor    = blue, %Colour of internal links
   citecolor   = red %Colour of citations
+}
+
+\lstset{ %
+  backgroundcolor=\color{litegrey},
+  basicstyle=\footnotesize,
+  breakatwhitespace=true,
+  breaklines=true,
+  captionpos=b,                    % sets the caption-position to bottom
+  mathescape=true,
+  keepspaces=true,
+  language=Python,
+  showspaces=false,
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  inputencoding=utf8/latin1
 }
 
 \usepackage{comment}
@@ -56,7 +75,6 @@
 \cfoot{\thepage\ / \pageref{LastPage}}
 \renewcommand{\footrulewidth}{0.4pt}
 \renewcommand{\labelitemi}{$\bullet$}
-\setcounter{section}{-1}
 
 %%caratula
 \materia{Sistemas Operativos}

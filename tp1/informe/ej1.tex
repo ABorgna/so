@@ -1,2 +1,20 @@
 \section{Ejercicio 1}
 
+La tarea \textbf{TaskConsola} realiza $n$ llamadas bloqueantes entre $bmin$ y $bmax$, y ejecuta 1 tic de cpu luego de cada una.
+
+Para calcular el tiempo a esperar usamos la función de c++ \textsf{rand()}, que devuelve un entero pseudo-aleatorio entre 0 y RAND\_MAX, por lo que debemos usar un modulo.
+\\
+
+\begin{lstlisting} [caption={Generacion aleatoria del tiempo a bloquear},label=ej1-time]j
+tiempo = bmin + rand() % (bmax - bmin);
+\end{lstlisting}
+
+En la figura \ref{fig:ej1} observamos como corre una única \textbf{TaskConsola} con $n = 4$ y tiempos de bloqueo entre $1$ y $8$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{ej1}
+    \caption{TaskConsola con n=4, bmin=1 y bmax=8}
+    \label{fig:ej1}
+\end{figure}
+

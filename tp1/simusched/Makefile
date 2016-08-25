@@ -48,19 +48,15 @@ ejercicio5: $(MAIN) tasks/ej4.tsk
 
 ejercicio6: $(MAIN)
 	@echo "No implementado"
-	@exit 1
 
 ejercicio7: $(MAIN)
 	@echo "No implementado"
-	@exit 1
 
 ejercicio8: $(MAIN)
 	@echo "No implementado"
-	@exit 1
 
 ejercicio9: $(MAIN)
 	@echo "No implementado"
-	@exit 1
 
 %.o: %.cpp %.h basesched.h
 basesched.o: basesched.cpp basesched.h

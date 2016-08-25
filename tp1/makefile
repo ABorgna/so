@@ -8,8 +8,8 @@ all: help
 tar: $(ENTREGABLE)
 
 $(ENTREGABLE): informe
-	make -C simusched clean
 	make -C informe
+	make -C simusched clean
 	tar -czf $@ simusched -C informe informe.pdf
 
 help:

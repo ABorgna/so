@@ -3,11 +3,19 @@ targets = informe.pdf
 includes = ej1.tex ej2.tex ej3.tex ej4.tex ej5.tex ej6.tex \
 		   ej7.tex ej8.tex ej9.tex
 
-libs = caratula.sty
+IMAGES_DIR = ../simusched/out
 
-all: $(targets)
+LIBS = caratula.sty
+DEPEND = $(IMAGES_DIR)
 
-$(targets) : %.pdf : %.tex $(libs) $(includes)
+.PHONY: all images clean
+
+all: images $(targets)
+
+images:
+	make -C ../simusched ejercicios
+
+$(targets) : %.pdf : %.tex $(LIBS) $(DEPEND) $(includes)
 	pdflatex $*
 	pdflatex $*
 
