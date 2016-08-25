@@ -1,2 +1,51 @@
 \section{Ejercicio 3}
 
+La \textbf{TaskBatch} debe usar la CPU durante $total\_cpu$ ciclos de reloj.
+Como cada bloqueo utiliza un ciclo para iniciarse, el tiempo extra que tendremos que
+usar la CPU sera de $t_{total} = total\_cpu - cant\_bloqueos$.
+
+Para acomodar todos los bloqueos pseudo-aleatoriamente decidimos en qué luego de cuanto
+tiempo extra lanzar cada una utilizando la función \textsf{rand()} y la insertamos en un vector ordenado.
+Luego procedemos recorremos el array esperando el tiempo necesario.
+
+El algoritmo se detalla en el listing \ref{ej3-algo}
+
+\begin{lstlisting} [caption={Generacion aleatoria de la secuencia de bloqueos},label=ej3-algo]j
+for $i$ in range($cant\_bloqueos$):
+    agregar (rand() % ($t_{total} + 1$)) al array ordenado $bloqueos$
+
+$tiempoExtraConsumido$ $\leftarrow$ 0
+for $t_{bloqueo}$ in $bloqueos$:
+    if $tiempoExtraConsumido$ < $t_{bloqueo}$:
+        usar la cpu por ($t_{bloqueo}$ - $tiempoExtraConsumido$) ciclos
+        $tiempoExtraConsumido$ $\leftarrow$ $t_{bloqueo}$
+    bloquear la tarea por 2 ciclos
+
+if $tiempoExtraConsumido$ < $t_{total}$:
+    usar la cpu por ($t_{total}$ - $tiempoExtraConsumido$) ciclos
+
+\end{lstlisting}
+
+Utilizando un lote de \textbf{TaskBatch} con parámetros detallados en la tabla \ref{table:ej3-lote}
+podemos ver en la figura \ref{fig:ej3} como se logra el comportamiento deseado.
+
+\begin{center}
+    \begin{tabular}{| l | l | l |}
+        \hline
+        Tarea & total\_cpu & cant\_bloqueos \\ \hline
+        0 & 10 & 4 \\
+        1 & 15 & 4 \\
+        2 & 10 & 2 \\
+        3 & 15 & 6 \\
+        \hline
+    \end{tabular}
+    \label{table:ej3-lote}
+\end{center}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{ej3}
+    \caption{Lote de 4 TaskBatch}
+    \label{fig:ej3}
+\end{figure}
+
