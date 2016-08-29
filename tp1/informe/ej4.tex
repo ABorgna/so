@@ -1,2 +1,41 @@
 \section{Ejercicio 4}
 
+Para la implementación de \textbf{SchedRR} usamos una única cola de procesos para todos los cores, un vector que indica para cada cpu su cantidad de quantums y otro del mismo tamaño para indicar el estado actual de cada uno.
+  \begin{lstlisting} [caption={Estructuras de la clase}]
+    [...]
+    private:
+     std::queue<int> q;
+     std::vector<int> quantum_total;
+     std::vector<int> quantum_restante;
+  \end{lstlisting}
+
+De este modo, la idea es en cada $TICK$ decrementar los quantums restantes del cpu correspondiente y, cuando llegue a cero habiendo otras tareas en la cola, desencolar una nueva.
+
+Cuando se introduce un nuevo proceso u otro vuelve de una llamada bloqueante lo único que debemos hacer es agregarlo a la cola de espera del scheduler.
+En el caso de un $tick$, la acción difiere según el motivo con el que se lo llama:
+
+  \begin{itemize}
+    \item Si se trata de un $BLOCK$ y hay procesos esperando ser ejecutados, se desencola uno sin encolar el actual (en su lugar, esperamos a que llame a $unblock$ para volver a la cola). De no haber más procesos, se le sigue destinando tiempo de cpu al actual mientras esté bloqueado.
+    \item De ser un $EXIT$, significa que la tarea actual ha concluído su ejecución. Al igual que en el block, desencolamos un nuevo proceso y no reencolamos la actual porque ya terminó de ejecutar. De no haber, sin embargo, pasamos a la $IDLE\_TASK$ hasta que aparezca una nueva tarea y el cpu reciba un $tick$.
+    \item Por otro lado, cuando el motivo es un $TICK$, decrementamos siempre los quantums restantes del cpu actual y, mientras haya, seguirá ejecutando su tarea. Si la tarea actual se quedó sin quantums o bien la reencolamos tras sacar una nueva con el total de sus quantums, o renovamos su ciclo y la dejamos seguir ejecutándose.
+  \end{itemize}
+
+En esta implementación, de cargar una tarea justo después de que la única en ejecución termine su ciclo, la tarea nueva va a tener que esperar a que la actual termine otro ciclo más.
+
+  \begin{lstlisting} [caption={Algoritmo para operaci\'on tick en round robin}]
+    if TICK:
+      decrementar quantum[cpu]
+      if quantum[cpu] > 0:
+        return pid
+      if no hay procesos encolados:
+        resetear quantum[cpu]
+        return pid
+      if pid != IDLE:
+        encolar pid
+
+    if no hay procesos encolados:
+      if BLOCK return pid
+      else return IDLE
+
+    return nuevo proceso desencolado y resetear quantum[cpu]
+  \end{lstlisting}
