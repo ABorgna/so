@@ -49,16 +49,16 @@ ejercicio5: $(MAIN) tasks/ej5.tsk
 ejercicio6: $(MAIN)
 	@echo "No implementado"
 
-ejercicio7: $(MAIN)
-	./simusched tasks/ej5.tsk 1 2 1 SchedSJF 2 2 2 2 \		# 2 quantums cada tarea
-		| python2 ./graphsched.py > $(OUT_DIR)/ej5-10.png
+ejercicio7: $(MAIN) tasks/ej5.tsk
+	./simusched tasks/ej5.tsk 1 2 1 SchedSJF 2 2 2 2 \		  # 2 quantums cada tarea
+		| python2 ./graphsched.py > $(OUT_DIR)/ej7-sjf.png
 	./simusched tasks/ej5.tsk 1 2 1 SchedRSJF 2 3 3 3 3 \   # 3 quantums c/ tarea, 2 por turno
-		| python2 ./graphsched.py > $(OUT_DIR)/ej5-10.png
+		| python2 ./graphsched.py > $(OUT_DIR)/ej7-rsjf.png
 
 ejercicio8: $(MAIN)
 	@echo "No implementado"
 
-ejercicio9: $(MAIN)
+ejercicio9: $(MAIN) tasks/ej4.tsk
 	./simusched tasks/ej4.tsk 2 1 1 SchedMFQ 2 4 6 \
 		| python2 ./graphsched.py > $(OUT_DIR)/ej9.png
 
