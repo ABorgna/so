@@ -56,7 +56,8 @@ ejercicio8: $(MAIN)
 	@echo "No implementado"
 
 ejercicio9: $(MAIN)
-	@echo "No implementado"
+	./simusched tasks/ej4.tsk 2 1 1 SchedMFQ 2 4 6 \
+		| python2 ./graphsched.py > $(OUT_DIR)/ej9.png
 
 %.o: %.cpp %.h basesched.h
 basesched.o: basesched.cpp basesched.h
