@@ -2,8 +2,8 @@
 #define __SCHED_SJF__
 
 #include <algorithm>
-#include <queue>
-#include <vector>
+#include <set>
+#include <map>
 #include "basesched.h"
 
 using namespace std;
@@ -19,6 +19,8 @@ class SchedSJF : public SchedBase {
 
    private:
     /* llenar */
+    set<pair<int, int>> espera;  //pid's en espera
+    map<int, int> tiempos; //<tiempo, pid>
 };
 
 #endif

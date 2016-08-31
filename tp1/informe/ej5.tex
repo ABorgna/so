@@ -1,2 +1,76 @@
 \section{Ejercicio 5}
 
+Dado el mismo lote de tareas que usamos para mediciones en el \hyperref[sec:ej2]{ejercicio 2}, vamos a calcular $latencia$, $waiting$-$time$ y tiempo total de ejecución para cada proceso.
+
+\fbox{\parbox{6cm}
+	{\noindent
+		TaskCPU 10					\\
+		@5:								 \\
+		TaskConsola 5 1 4	 \\
+		@6:								 \\
+		TaskConsola 5 1 2	 \\
+		@8:								 \\
+		TaskCPU 10
+	}
+}
+
+\begin{figure}[H]
+		\centering
+		\includegraphics[width=\textwidth]{ej5-2}
+		\caption{Ejecución con un único core, 2 ciclos para cada cambio de contexto y 2 quantums}
+		\label{fig:ej5.2}
+\end{figure}
+
+\begin{center}
+		\begin{tabular}{| l | l | l | l |}
+				\hline
+				Tarea & Waiting-time & Latencia & Tiempo Total	\\ \hline
+				0 &	38	 &	2	 &	48	\\
+				1 &	53	 &	3	 &	75	\\
+				2 &	62	 &	5	 &	78	\\
+				3 &	58	 &	10 &	68	\\
+				\hline
+		\end{tabular}
+\end{center}
+\captionof{table}{: Correspondiente a la figura \ref{fig:ej5.2} }
+
+\begin{figure}[H]
+		\centering
+		\includegraphics[width=\textwidth]{ej5-5}
+		\caption{Ejecución con un único cores, 2 ciclos para cada cambio de contexto y 5 quantums}
+		\label{fig:ej5-5}
+\end{figure}
+
+\begin{center}
+		\begin{tabular}{| l | l | l | l |}
+				\hline
+				Tarea & Waiting-time & Latencia & Tiempo Total	\\ \hline
+				0 & 10 & 2  & 20 \\
+				1 & 44 & 4  & 65 \\
+				2 & 52 & 6  & 68 \\
+				3 & 24 & 14 & 34 \\
+				\hline
+		\end{tabular}
+\end{center}
+\captionof{table}{: Correspondiente a la figura \ref{fig:ej5-5} }
+
+
+\begin{figure}[H]
+		\centering
+		\includegraphics[width=\textwidth]{ej5-10}
+		\caption{Ejecución con un único cores, 2 ciclos para cada cambio de contexto y 10 quantums}
+		\label{fig:ej5-10}
+\end{figure}
+
+\begin{center}
+		\begin{tabular}{| l | l | l | l |}
+				\hline
+				Tarea & Waiting-time & Latencia & Tiempo Total	\\ \hline
+				0     &  2           &  2       & 12            \\
+				1     &  39          &  9       & 61            \\
+				2     &  48          &  11      & 64            \\
+				3     &  12          &  12      & 22            \\
+				\hline
+		\end{tabular}
+\end{center}
+\captionof{table}{: Correspondiente a la figura \ref{fig:ej5-10} }

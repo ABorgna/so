@@ -38,7 +38,7 @@ int SchedRR::tick(int cpu, const enum Motivo m) {
         if (quantum_restante[cpu] > 0) {
             return pid;
         }
-        if(q.empty()) {
+        if (q.empty() && pid != IDLE_TASK) {
             quantum_restante[cpu] = quantum_total[cpu];
             return pid;
         }
