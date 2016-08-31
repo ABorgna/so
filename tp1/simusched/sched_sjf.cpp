@@ -31,10 +31,9 @@ int SchedSJF::tick(int cpu, const enum Motivo m) {
         return IDLE_TASK;
     else if (m == TICK && current_pid(cpu) != IDLE_TASK)
         return current_pid(cpu);
-    else {
-        auto menor_tiempo = espera.begin();
-        espera.erase(menor_tiempo);
-        return menor_tiempo->second;
-    }
+
+    auto menor_tiempo = espera.begin();
+    espera.erase(menor_tiempo);
+    return menor_tiempo->second;
 
 }

@@ -2,7 +2,8 @@
 #define __SCHED_RSJF__
 
 #include <algorithm>
-#include <queue>
+#include <set>
+#include <map>
 #include <vector>
 #include "basesched.h"
 
@@ -19,6 +20,11 @@ class SchedRSJF : public SchedBase {
 
    private:
     /* llenar */
+    set<pair<int, int>> espera;    //pid's en espera
+    map<int, int> tiempos;         //<tiempo, pid>
+
+    vector<int> quantum_restante;  // deja vu
+    vector<int> quantum_total;
 };
 
 #endif
