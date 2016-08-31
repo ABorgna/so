@@ -10,7 +10,7 @@ SchedRSJF::SchedRSJF(vector<int> argn) {
     quantum_total.reserve(cant_cpus);
     quantum_restante.reserve(cant_cpus);
 
-    for (int i = 1 ; (unsigned) i <= cant_cpus ; i++) {
+    for (int i = 1 ; i <= cant_cpus ; i++) {
       quantum_total[i-1] = argn[i];
       quantum_restante[i-1] = 0;
     }
@@ -26,21 +26,21 @@ void SchedRSJF::load(int pid) {
     espera.insert(make_pair(tiempo_pid, pid));
 }
 
-void SchedRSJF::unblock(int pid) { /* llenar */ }
+void SchedRSJF::unblock(int pid) { /* //Por enunciado m != BLOCK */ }
 
 int SchedRSJF::tick(int core, const enum Motivo m) {
     //Por enunciado m != BLOCK
 
-    int pid = current_pid(cpu);
+    int pid = current_pid(core);
 
     // Si es un tick, disminuye quantum
     if (m == TICK) {
-        quantum_restante[cpu]--;
-        if (quantum_restante[cpu] > 0) {
+        quantum_restante[core]--;
+        if (quantum_restante[core] > 0) {
             return pid;
         }
         if(espera.empty() && pid != IDLE_TASK) {
-            quantum_restante[cpu] = quantum_total[cpu];
+            quantum_restante[core] = quantum_total[core];
             return pid;
         }
     }
@@ -48,7 +48,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
     // Si estoy corriendo alguna tarea, la encolo
     // un EXIT no tiene que agregarla
     if (m == TICK && pid != IDLE_TASK) {
-        espera.insert(make_pair(quantum_restante[cpu], pid));
+        espera.insert(make_pair(quantum_restante[core], pid));
     }
 
     // Sched no tiene a nadie para asignarle al cpu actual
@@ -60,7 +60,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
     auto menor_tiempo = espera.begin();
     espera.erase(menor_tiempo);
 
-    quantum_restante[cpu] = menor_tiempo->first;
+    quantum_restante[core] = menor_tiempo->first;
 
     return menor_tiempo->second;
 }
