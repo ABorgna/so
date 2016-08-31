@@ -50,7 +50,10 @@ ejercicio6: $(MAIN)
 	@echo "No implementado"
 
 ejercicio7: $(MAIN)
-	@echo "No implementado"
+	./simusched tasks/ej5.tsk 1 2 1 SchedSJF 2 2 2 2 \		# 2 quantums cada tarea
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5-10.png
+	./simusched tasks/ej5.tsk 1 2 1 SchedRSJF 2 3 3 3 3 \   # 3 quantums c/ tarea, 2 por turno
+		| python2 ./graphsched.py > $(OUT_DIR)/ej5-10.png
 
 ejercicio8: $(MAIN)
 	@echo "No implementado"

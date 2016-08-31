@@ -19,8 +19,8 @@ class SchedSJF : public SchedBase {
 
    private:
     /* llenar */
-    set<pair<int, int>> espera;  //pid's en espera
-    map<int, int> tiempos; //<tiempo, pid>
+    set<pair<int, int>> espera;  //pid's en espera <tiempo, pid>
+    map<int, int> tiempos;       //<pid, tiempo>
 };
 
 #endif

@@ -36,6 +36,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
     // Si es un tick, disminuye quantum
     if (m == TICK) {
         quantum_restante[core]--;
+        tiempos[pid]--;
         if (quantum_restante[core] > 0) {
             return pid;
         }
@@ -48,7 +49,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
     // Si estoy corriendo alguna tarea, la encolo
     // un EXIT no tiene que agregarla
     if (m == TICK && pid != IDLE_TASK) {
-        espera.insert(make_pair(quantum_restante[core], pid));
+        espera.insert(make_pair(tiempos[pid], pid));
     }
 
     // Sched no tiene a nadie para asignarle al cpu actual
@@ -60,7 +61,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
     auto menor_tiempo = espera.begin();
     espera.erase(menor_tiempo);
 
-    quantum_restante[core] = menor_tiempo->first;
+    quantum_restante[core] = quantum_total[core];
 
     return menor_tiempo->second;
 }

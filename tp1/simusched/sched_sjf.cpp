@@ -9,7 +9,7 @@ SchedSJF::SchedSJF(vector<int> argn) {
     // Recibe la cantidad de cores
     /* llenar */
     // arg[0] cant cores
-    // arg[1..argn.size()] duracion de pid [1..argn.size()]
+    // arg[1..argn.size()] duracion de pid [0..argn.size())
 
     for (int i = 1 ; (unsigned) i < argn.size() ; i++)
       tiempos[i-1] = argn[i];
