@@ -5,21 +5,22 @@
 
 using namespace std;
 
-//Funciones Auxiliares
+// Funciones Auxiliares
 
 // Devuelvo si estan todas las colas vacias o no
-bool colasVacias( QueueArray colas){
-    for(unsigned int i = 0; i<colas.size(); i++){
-        if (!colas[i].empty()) return false;
+bool colasVacias(QueueArray colas) {
+    for (unsigned int i = 0; i < colas.size(); i++) {
+        if (!colas[i].empty())
+            return false;
     }
     return true;
 }
 
 // Devuelvo en que cola estuvo por ultimo vez pid
-int cualCola(int pid, SetArray laUltimaColaVisitada){
-    for(unsigned int i = 0; i<laUltimaColaVisitada.size(); i++){
-    std::set<int>::iterator it = laUltimaColaVisitada[i].find(pid);
-        if(it != laUltimaColaVisitada[i].end()){
+int cualCola(int pid, SetArray laUltimaColaVisitada) {
+    for (unsigned int i = 0; i < laUltimaColaVisitada.size(); i++) {
+        std::set<int>::iterator it = laUltimaColaVisitada[i].find(pid);
+        if (it != laUltimaColaVisitada[i].end()) {
             return i;
         }
     }
@@ -27,9 +28,9 @@ int cualCola(int pid, SetArray laUltimaColaVisitada){
 }
 
 // Devuelvo la primer cola que no este vacia
-int primerColaNoVacia( QueueArray colas ){
-    for(unsigned int i = 0; i<colas.size();i++){
-        if(!colas[i].empty()){
+int primerColaNoVacia(QueueArray colas) {
+    for (unsigned int i = 0; i < colas.size(); i++) {
+        if (!colas[i].empty()) {
             return i;
         }
     }
@@ -37,59 +38,52 @@ int primerColaNoVacia( QueueArray colas ){
 }
 
 SchedMFQ::SchedMFQ(vector<int> argn) {
-    // MFQ recibe la cantidad de cores y luego los quantums de las pilas por parámetro
-    int cantColas = argn.size()-1;
+    // MFQ recibe la cantidad de cores y luego los quantums de las pilas por
+    // parámetro
+    int cantColas = argn.size() - 1;
     int cantCores = argn[0];
     colas.reserve(cantColas);
     quantums.reserve(cantColas);
 
-    std::vector<int> inicializar(cantCores,0);
-    quantumsRestantes = inicializar;
+    quantumsRestantes = std::vector<int>(cantCores, 0);
 
-    for(int i=1; i<=cantColas; i++) {
-        quantums.push_back(argn[i+1]);
-        std::queue<int> colaVacia;
-        colas.push_back(colaVacia);
-        std::set<int> conjuntoVacio;
-        laUltimaColaVisitada.push_back(conjuntoVacio);
+    for (int i = 0; i < cantColas; i++) {
+        quantums.push_back(argn[i + 1]);
+        colas.push_back(std::queue<int>());
+        laUltimaColaVisitada.push_back(std::set<int>());
     }
 }
 
 SchedMFQ::~SchedMFQ() {}
 
-void SchedMFQ::load(int pid) { 
-
-	colas[0].push(pid);
-
-}
+void SchedMFQ::load(int pid) { colas[0].push(pid); }
 
 void SchedMFQ::unblock(int pid) {
-
     int colaPid = cualCola(pid, laUltimaColaVisitada);
 
-    if (colaPid == 0){
-        colas[colaPid].push(pid);
-    }
-    else{
-        colas[colaPid-1].push(pid);
-    }
-    laUltimaColaVisitada[colaPid].erase(pid);
+    colas[max(0, colaPid - 1)].push(pid);
 
+    laUltimaColaVisitada[colaPid].erase(pid);
 }
 
 int SchedMFQ::tick(int core, const enum Motivo m) {
-
     int pid = current_pid(core);
-    unsigned int colaPid = cualCola(pid, laUltimaColaVisitada);
-    int quantumPid = quantums[colaPid];
+    int colaPid = -1;
+    int quantumPid = 1;
+
+    if (pid != IDLE_TASK) {
+        colaPid = cualCola(pid, laUltimaColaVisitada);
+        quantumPid = quantums[colaPid];
+    }
 
     // Si es un tick, disminuye quantum
+    // Si es IDLE_TASK pero no hay mas tareas, seguimos con ella
     if (m == TICK) {
         quantumsRestantes[core]--;
         if (quantumsRestantes[core] > 0) {
             return pid;
         }
-        if(colasVacias(colas)) {
+        if (colasVacias(colas)) {
             quantumsRestantes[core] = quantumPid;
             return pid;
         }
@@ -103,12 +97,7 @@ int SchedMFQ::tick(int core, const enum Motivo m) {
     // Si estoy corriendo alguna tarea, la encolo
     // un EXIT o un BLOCK no tiene que agregarla
     if (m == TICK && pid != IDLE_TASK) {
-        if(colaPid == colas.size()-1){
-            colas[colaPid].push(pid);
-        }
-        else{
-            colas[colaPid+1].push(pid);
-        }
+        colas[min((int)colas.size() - 1, colaPid + 1)].push(pid);
     }
 
     // Sched no tiene a nadie para asignarle al core actual
@@ -125,4 +114,3 @@ int SchedMFQ::tick(int core, const enum Motivo m) {
 
     return nuevoPid;
 }
-
