@@ -19,58 +19,84 @@ $(MAIN): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 ejercicio1: $(OUT_DIR)/ej1.png
-$(OUT_DIR)/ej1.png: $(MAIN) tasks/ej1.tsk
-	./simusched tasks/ej1.tsk 1 1 1 SchedFCFS \
+$(OUT_DIR)/ej1.png: tasks/ej1.tsk $(MAIN)
+	./simusched $< 1 1 1 SchedFCFS \
 		| python2 ./graphsched.py > $@
 
 ejercicio2: $(OUT_DIR)/ej2-1.png $(OUT_DIR)/ej2-2.png $(OUT_DIR)/ej2-4.png
-$(OUT_DIR)/ej2-1.png: $(MAIN) tasks/ej2.tsk
-	./simusched tasks/ej2.tsk 1 2 2 SchedFCFS \
+$(OUT_DIR)/ej2-1.png: tasks/ej2.tsk $(MAIN)
+	./simusched $< 1 2 2 SchedFCFS \
 		| python2 ./graphsched.py > $@
-$(OUT_DIR)/ej2-2.png: $(MAIN) tasks/ej2.tsk
-	./simusched tasks/ej2.tsk 2 2 2 SchedFCFS \
+$(OUT_DIR)/ej2-2.png: tasks/ej2.tsk $(MAIN)
+	./simusched $< 2 2 2 SchedFCFS \
 		| python2 ./graphsched.py > $@
-$(OUT_DIR)/ej2-4.png: $(MAIN) tasks/ej2.tsk
-	./simusched tasks/ej2.tsk 4 2 2 SchedFCFS \
+$(OUT_DIR)/ej2-4.png: tasks/ej2.tsk $(MAIN)
+	./simusched $< 4 2 2 SchedFCFS \
 		| python2 ./graphsched.py > $@
 
 ejercicio3: $(OUT_DIR)/ej3.png
-$(OUT_DIR)/ej3.png: $(MAIN) tasks/ej3.tsk
-	./simusched tasks/ej3.tsk 1 1 1 SchedFCFS \
+$(OUT_DIR)/ej3.png: tasks/ej3.tsk $(MAIN)
+	./simusched $< 1 1 1 SchedFCFS \
 		| python2 ./graphsched.py > $@
 
 ejercicio4: $(OUT_DIR)/ej4.png
-$(OUT_DIR)/ej4.png: $(MAIN) tasks/ej4.tsk
-	./simusched tasks/ej4.tsk 1 1 1 SchedRR 4 \
+$(OUT_DIR)/ej4.png: tasks/ej4.tsk $(MAIN)
+	./simusched $< 1 1 1 SchedRR 4 \
 		| python2 ./graphsched.py > $@
 
 ejercicio5: $(OUT_DIR)/ej5-2.png $(OUT_DIR)/ej5-5.png $(OUT_DIR)/ej5-10.png
-$(OUT_DIR)/ej5-2.png: $(MAIN) tasks/ej5.tsk
-	./simusched tasks/ej5.tsk 1 2 1 SchedRR 2 \
+$(OUT_DIR)/ej5-2.png: tasks/ej5.tsk $(MAIN)
+	./simusched $< 1 2 1 SchedRR 2 \
 		| python2 ./graphsched.py > $@
-$(OUT_DIR)/ej5-5.png: $(MAIN) tasks/ej5.tsk
-	./simusched tasks/ej5.tsk 1 2 1 SchedRR 5 \
+$(OUT_DIR)/ej5-5.png: tasks/ej5.tsk $(MAIN)
+	./simusched $< 1 2 1 SchedRR 5 \
 		| python2 ./graphsched.py > $@
-$(OUT_DIR)/ej5-10.png: $(MAIN) tasks/ej5.tsk
-	./simusched tasks/ej5.tsk 1 2 1 SchedRR 10 \
+$(OUT_DIR)/ej5-10.png: tasks/ej5.tsk $(MAIN)
+	./simusched $< 1 2 1 SchedRR 10 \
 		| python2 ./graphsched.py > $@
 
 ejercicio6: $(MAIN)
 
 ejercicio7: $(OUT_DIR)/ej7-sjf.png $(OUT_DIR)/ej7-rsjf.png
-$(OUT_DIR)/ej7-sjf.png: $(MAIN) tasks/ej7.tsk
-	./simusched tasks/ej7.tsk 1 1 1 SchedSJF 10 9 2 \
+$(OUT_DIR)/ej7-sjf.png: tasks/ej7.tsk $(MAIN)
+	./simusched $< 1 1 1 SchedSJF 10 9 2 \
 		| python2 ./graphsched.py > $@
-$(OUT_DIR)/ej7-rsjf.png: $(MAIN) tasks/ej7.tsk
-	./simusched tasks/ej7.tsk 1 1 1 SchedRSJF 4 10 9 2 \
+$(OUT_DIR)/ej7-rsjf.png: tasks/ej7.tsk $(MAIN)
+	./simusched $< 1 1 1 SchedRSJF 4 10 9 2 \
 		| python2 ./graphsched.py > $@
 
-ejercicio8: $(MAIN)
-	@echo "ej8 no implementado"
+ejercicio8: $(MAIN) $(OUT_DIR)/ej8-cpu-rr.png $(OUT_DIR)/ej8-cpu-rr-m.png \
+					$(OUT_DIR)/ej8-cpu-fcfs.png $(OUT_DIR)/ej8-cpu-fcfs-m.png \
+					$(OUT_DIR)/ej8-cpu-sjf.png $(OUT_DIR)/ej8-cpu-sjf-m.png \
+					$(OUT_DIR)/ej8-cpu-rsjf.png $(OUT_DIR)/ej8-cpu-rsjf-m.png
+$(OUT_DIR)/ej8-cpu-rr.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 1 1 2 SchedRR 4 \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej8-cpu-rr-m.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 2 1 2 SchedRR 4 4 \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej8-cpu-fcfs.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 1 1 2 SchedFCFS \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej8-cpu-fcfs-m.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 2 1 2 SchedFCFS \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej8-cpu-sjf.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 1 1 2 SchedSJF 10 20 5 5 5 \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej8-cpu-sjf-m.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 2 1 2 SchedSJF 10 20 5 5 5 \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej8-cpu-rsjf.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 1 1 2 SchedRSJF 4 10 20 5 5 5 \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej8-cpu-rsjf-m.png: tasks/ej8-cpu.tsk $(MAIN)
+	./simusched $< 2 1 2 SchedRSJF 4 10 20 5 5 5 \
+		| python2 ./graphsched.py > $@
 
 ejercicio9: $(OUT_DIR)/ej9.png
-$(OUT_DIR)/ej9.png: $(MAIN) tasks/ej9.tsk
-	./simusched tasks/ej9.tsk 2 1 1 SchedMFQ 2 4 6 \
+$(OUT_DIR)/ej9.png: tasks/ej9.tsk $(MAIN)
+	./simusched $< 2 1 1 SchedMFQ 2 4 6 \
 		| python2 ./graphsched.py > $@
 
 %.o: %.cpp %.h basesched.h

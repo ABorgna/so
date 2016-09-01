@@ -3,10 +3,14 @@
 
 #include <algorithm>
 #include <set>
+#include <queue>
 #include <map>
 #include "basesched.h"
 
 using namespace std;
+
+template<typename T>
+using minheap = priority_queue<T, vector<T>, std::greater<T>>;
 
 class SchedSJF : public SchedBase {
    public:
@@ -19,7 +23,7 @@ class SchedSJF : public SchedBase {
 
    private:
     /* llenar */
-    set<pair<int, int>> espera;  //pid's en espera <tiempo, pid>
+    minheap<pair<int, int>> espera;  //pid's en espera <tiempo, pid>
     map<int, int> tiempos;       //<pid, tiempo>
 };
 

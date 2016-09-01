@@ -19,7 +19,7 @@ SchedSJF::~SchedSJF() { /* llenar */
 
 void SchedSJF::load(int pid) {
     int tiempo_pid = tiempos[pid];
-    espera.insert(make_pair(tiempo_pid, pid));
+    espera.push({tiempo_pid, pid});
 }
 
 void SchedSJF::unblock(__attribute__((unused)) int pid) { /* llenar */
@@ -28,12 +28,17 @@ void SchedSJF::unblock(__attribute__((unused)) int pid) { /* llenar */
 int SchedSJF::tick(int cpu, const enum Motivo m) {
     // Por enunciado m != BLOCK
 
-    if (m == EXIT && espera.empty())
+    if (m == EXIT && espera.empty()) {
         return IDLE_TASK;
-    else if (m == TICK && current_pid(cpu) != IDLE_TASK)
-        return current_pid(cpu);
+    } else if (m == TICK) {
+        if(current_pid(cpu) != IDLE_TASK) {
+            return current_pid(cpu);
+        } else if(espera.empty()) {
+            return IDLE_TASK;
+        }
+    }
 
-    auto menor_tiempo = espera.begin();
-    espera.erase(menor_tiempo);
-    return menor_tiempo->second;
+    auto menor_tiempo = espera.top();
+    espera.pop();
+    return menor_tiempo.second;
 }
