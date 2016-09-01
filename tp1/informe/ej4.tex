@@ -2,8 +2,6 @@
 
 Para la implementación de \textbf{SchedRR} usamos una única cola de procesos para todos los cores, un vector que indica para cada cpu su cantidad de quantums y otro del mismo tamaño para indicar el estado actual de cada uno.
   \begin{lstlisting} [caption={Estructuras de la clase}]
-    [...]
-    private:
      std::queue<int> q;
      std::vector<int> quantum_total;
      std::vector<int> quantum_restante;

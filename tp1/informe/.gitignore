@@ -1,6 +1,8 @@
 *.aux
 *.log
 *.toc
+*.fls
+*.fdb_latexmk
 
 informe.pdf
 
