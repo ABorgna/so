@@ -1,2 +1,165 @@
 \section{Ejercicio 8}
 
+Realizamos las mediciones sobre un lote de tareas $TaskCPU$,
+ya que los schedulers SJF y RSJF solo soportan tareas de este tipo.
+
+\begin{center}
+\fbox{\parbox{6cm}
+    {\noindent
+        TaskCPU 10 \\
+        TaskCPU 20 \\
+        @4: \\
+        TaskCPU 5 \\
+        TaskCPU 5 \\
+        TaskCPU 5
+    }
+}
+\end{center}
+\captionof{figure}{Lote de tareas}
+\label{fig:ej8-t1}
+\vspace*{1em}
+
+\subsection{Mediciones sobre un solo núcleo}
+
+Primero realizamos mediciones ejecutando sobre un solo núcleo.
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-rr}
+        \caption{Ejecución sobre un único core del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler RoundRobin}
+        \label{fig:ej8-cpu-rr}
+\end{figure}
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-fcfs}
+        \caption{Ejecución sobre un único core del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler FIFO}
+        \label{fig:ej8-cpu-fcfs}
+\end{figure}
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-sjf}
+        \caption{Ejecución sobre un único core del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler SJF}
+        \label{fig:ej8-cpu-sjf}
+\end{figure}
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-rsjf}
+        \caption{Ejecución sobre un único core del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler RSJF}
+        \label{fig:ej8-cpu-rsjf}
+\end{figure}
+
+\begin{center}
+        \begin{tabular}{| c | c | c | c | c | c | c | c | c | c | c | c | c |}
+                \hline
+    Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Tiempo Total} \\
+                \cline{2-13}
+          & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RIFO \\
+                \hline
+    0 &       39 &   1 &   1 &  20 &        1 &   1 &   1 &   1 &       44 &  11 &  11 &  30 \\
+    1 &       37 &  12 &  30 &  35 &        6 &  12 &  30 &  31 &       57 &  32 &  50 &  55 \\
+    2 &       28 &  29 &   8 &   2 &        7 &  29 &   8 &   2 &       33 &  34 &  13 &   7 \\
+    3 &       30 &  35 &  14 &   8 &       12 &  35 &  14 &   8 &       35 &  40 &  19 &  13 \\
+    4 &       32 &  46 &  20 &  14 &       17 &  46 &  20 &  14 &       37 &  46 &  25 &  19 \\
+                \hline
+        \end{tabular}
+\end{center}
+\captionof{table}{Mediciones sobre un solo core
+                  usando el lote de tareas de la figura \ref{fig:ej8-t1}}
+
+Con estos valores podemos calcular el promedio de cada métrica para cada scheduler.
+
+\begin{center}
+        \begin{tabular}{| l | c | c | c |}
+                \hline
+    Scheduler & Waiting-time & Latencia & Tiempo Total \\
+                \hline
+    RR   &    33.5 &  8.6 & 41.2 \\
+    FIFO &    24.6 & 24.6 & 32.6 \\
+    SJF  &    14.6 & 14.6 & 23.6 \\
+    RSJF &    15.8 & 11.2 & 24.8 \\
+                \hline
+        \end{tabular}
+\end{center}
+\captionof{table}{Promedio de métricas sobre un solo core
+                  usando el lote de tareas de la figura \ref{fig:ej8-t1}}
+
+\subsection{Mediciones sobre dos núcleos}
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-rr-m}
+        \caption{Ejecución sobre dos cores del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler RoundRobin}
+        \label{fig:ej8-cpu-rr-m}
+\end{figure}
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-fcfs-m}
+        \caption{Ejecución sobre dos cores del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler FIFO}
+        \label{fig:ej8-cpu-fcfs-m}
+\end{figure}
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-sjf-m}
+        \caption{Ejecución sobre dos cores del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler SJF}
+        \label{fig:ej8-cpu-sjf-m}
+\end{figure}
+
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{ej8-cpu-rsjf-m}
+        \caption{Ejecución sobre dos cores del lote de la figura
+            \ref{fig:ej8-t1} con el scheduler RSJF}
+        \label{fig:ej8-cpu-rsjf-m}
+\end{figure}
+
+\begin{center}
+        \begin{tabular}{| c | c | c | c | c | c | c | c | c | c | c | c | c |}
+                \hline
+    Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Tiempo Total} \\
+                \cline{2-13}
+          & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RIFO \\
+                \hline
+    0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
+    1 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
+    2 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
+    3 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
+    4 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
+                \hline
+        \end{tabular}
+\end{center}
+\captionof{table}{Mediciones sobre dos cores
+                  usando el lote de tareas de la figura \ref{fig:ej8-t1}}
+
+Con estos valores podemos calcular el promedio de cada métrica para cada scheduler.
+
+\begin{center}
+        \begin{tabular}{| l | c | c | c |}
+                \hline
+    Scheduler & Waiting-time & Latencia & Tiempo Total \\
+                \hline
+    RR   &       0 &    0 &    0 \\
+    FIFO &       0 &    0 &    0 \\
+    SJF  &       0 &    0 &    0 \\
+    RSJF &       0 &    0 &    0 \\
+                \hline
+        \end{tabular}
+\end{center}
+\captionof{table}{Promedio de métricas sobre dos cores
+                  usando el lote de tareas de la figura \ref{fig:ej8-t1}}
+
+\subsection{Conclusiones}
+
+TODO
+
