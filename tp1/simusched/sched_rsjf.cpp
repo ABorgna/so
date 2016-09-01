@@ -10,26 +10,29 @@ SchedRSJF::SchedRSJF(vector<int> argn) {
     quantum_total.reserve(cant_cpus);
     quantum_restante.reserve(cant_cpus);
 
-    for (int i = 1 ; i <= cant_cpus ; i++) {
-      quantum_total[i-1] = argn[i];
-      quantum_restante[i-1] = 0;
+    for (int i = 1; i <= cant_cpus; i++) {
+        quantum_total[i - 1] = argn[i];
+        quantum_restante[i - 1] = 0;
     }
 
-    for (int i = cant_cpus + 1 ; (unsigned) i < argn.size() ; i++)
-      tiempos[i - (cant_cpus + 1)] = argn[i];
+    for (int i = cant_cpus + 1; (unsigned)i < argn.size(); i++)
+        tiempos[i - (cant_cpus + 1)] = argn[i];
 }
 
-SchedRSJF::~SchedRSJF() { /* llenar */ }
+SchedRSJF::~SchedRSJF() { /* llenar */
+}
 
 void SchedRSJF::load(int pid) {
     int tiempo_pid = tiempos[pid];
     espera.insert(make_pair(tiempo_pid, pid));
 }
 
-void SchedRSJF::unblock(int pid) { /* //Por enunciado m != BLOCK */ }
+void SchedRSJF::unblock(
+    __attribute__((unused)) int pid) { /* //Por enunciado m != BLOCK */
+}
 
 int SchedRSJF::tick(int core, const enum Motivo m) {
-    //Por enunciado m != BLOCK
+    // Por enunciado m != BLOCK
 
     int pid = current_pid(core);
 
@@ -40,7 +43,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
         if (quantum_restante[core] > 0) {
             return pid;
         }
-        if(espera.empty() && pid != IDLE_TASK) {
+        if (espera.empty() && pid != IDLE_TASK) {
             quantum_restante[core] = quantum_total[core];
             return pid;
         }

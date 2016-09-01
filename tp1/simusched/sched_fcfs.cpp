@@ -2,7 +2,7 @@
 
 using namespace std;
 
-SchedFCFS::SchedFCFS(vector<int> argn) {
+SchedFCFS::SchedFCFS(__attribute__((unused)) vector<int> argn) {
     // FCFS recibe la cantidad de cores.
 }
 
@@ -12,7 +12,7 @@ void SchedFCFS::load(int pid) {
     q.push(pid);  // llegó una tarea nueva
 }
 
-void SchedFCFS::unblock(int pid) {
+void SchedFCFS::unblock(__attribute__((unused)) int pid) {
     // Uy! unblock!... bueno, ya seguir'a en el próximo tick
 }
 

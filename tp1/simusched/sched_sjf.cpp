@@ -11,21 +11,22 @@ SchedSJF::SchedSJF(vector<int> argn) {
     // arg[0] cant cores
     // arg[1..argn.size()] duracion de pid [0..argn.size())
 
-    for (int i = 1 ; (unsigned) i < argn.size() ; i++)
-      tiempos[i-1] = argn[i];
+    for (int i = 1; (unsigned)i < argn.size(); i++) tiempos[i - 1] = argn[i];
 }
 
-SchedSJF::~SchedSJF() { /* llenar */ }
+SchedSJF::~SchedSJF() { /* llenar */
+}
 
 void SchedSJF::load(int pid) {
     int tiempo_pid = tiempos[pid];
     espera.insert(make_pair(tiempo_pid, pid));
 }
 
-void SchedSJF::unblock(int pid) { /* llenar */ }
+void SchedSJF::unblock(__attribute__((unused)) int pid) { /* llenar */
+}
 
 int SchedSJF::tick(int cpu, const enum Motivo m) {
-    //Por enunciado m != BLOCK
+    // Por enunciado m != BLOCK
 
     if (m == EXIT && espera.empty())
         return IDLE_TASK;
@@ -35,5 +36,4 @@ int SchedSJF::tick(int cpu, const enum Motivo m) {
     auto menor_tiempo = espera.begin();
     espera.erase(menor_tiempo);
     return menor_tiempo->second;
-
 }
