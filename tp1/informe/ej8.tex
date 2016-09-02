@@ -58,7 +58,7 @@ Primero realizamos mediciones ejecutando sobre un solo núcleo.
 \begin{center}
         \begin{tabular}{| c | c | c | c | c | c | c | c | c | c | c | c | c |}
                 \hline
-    Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Tiempo Total} \\
+    Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Turnaround} \\
                 \cline{2-13}
           & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RIFO \\
                 \hline
@@ -78,7 +78,7 @@ Con estos valores podemos calcular el promedio de cada métrica para cada schedu
 \begin{center}
         \begin{tabular}{| l | c | c | c |}
                 \hline
-    Scheduler & Waiting-time & Latencia & Tiempo Total \\
+    Scheduler & Waiting-time & Latencia & Turnaround \\
                 \hline
     RR   &    33.5 &  8.6 & 41.2 \\
     FIFO &    24.6 & 24.6 & 32.6 \\
@@ -127,15 +127,15 @@ Con estos valores podemos calcular el promedio de cada métrica para cada schedu
 \begin{center}
         \begin{tabular}{| c | c | c | c | c | c | c | c | c | c | c | c | c |}
                 \hline
-    Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Tiempo Total} \\
+    Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Turnaround} \\
                 \cline{2-13}
           & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RIFO \\
                 \hline
-    0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
-    1 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
-    2 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
-    3 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
-    4 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 &        0 &   0 &   0 &   0 \\
+    0 &       16 &   1 &   1 &  10 &        1 &   1 &   1 &   1 &       26 &  11 &  11 &  20 \\
+    1 &       17 &   1 &   1 &  16 &        1 &   1 &   1 &   1 &       37 &  21 &  21 &  36 \\
+    2 &       12 &   8 &   8 &   2 &        2 &   8 &   8 &   2 &       17 &  13 &  13 &   7 \\
+    3 &       14 &  14 &  14 &   2 &        2 &  14 &  14 &   2 &       19 &  19 &  19 &   7 \\
+    4 &       15 &  18 &  18 &   8 &        7 &  18 &  18 &   8 &       20 &  23 &  23 &  13 \\
                 \hline
         \end{tabular}
 \end{center}
@@ -147,12 +147,12 @@ Con estos valores podemos calcular el promedio de cada métrica para cada schedu
 \begin{center}
         \begin{tabular}{| l | c | c | c |}
                 \hline
-    Scheduler & Waiting-time & Latencia & Tiempo Total \\
+    Scheduler & Waiting-time & Latencia & Turnaround \\
                 \hline
-    RR   &       0 &    0 &    0 \\
-    FIFO &       0 &    0 &    0 \\
-    SJF  &       0 &    0 &    0 \\
-    RSJF &       0 &    0 &    0 \\
+    RR   &    14.8 &  2.6 & 23.8 \\
+    FIFO &     8.4 &  8.4 & 17.4 \\
+    SJF  &     8.4 &  8.4 & 17.4 \\
+    RSJF &     7.6 &  2.8 & 16.6 \\
                 \hline
         \end{tabular}
 \end{center}
