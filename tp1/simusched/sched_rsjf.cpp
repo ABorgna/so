@@ -24,7 +24,7 @@ SchedRSJF::~SchedRSJF() { /* llenar */
 
 void SchedRSJF::load(int pid) {
     int tiempo_pid = tiempos[pid];
-    espera.insert(make_pair(tiempo_pid, pid));
+    espera.push({tiempo_pid, pid});
 }
 
 void SchedRSJF::unblock(
@@ -52,7 +52,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
     // Si estoy corriendo alguna tarea, la encolo
     // un EXIT no tiene que agregarla
     if (m == TICK && pid != IDLE_TASK) {
-        espera.insert(make_pair(tiempos[pid], pid));
+        espera.push({tiempos[pid], pid});
     }
 
     // Sched no tiene a nadie para asignarle al cpu actual
@@ -61,10 +61,10 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
     }
 
     // Saco el minimo (head) del set<tiempo, pid> y reinicio quantums
-    auto menor_tiempo = espera.begin();
-    espera.erase(menor_tiempo);
+    auto menor_tiempo = espera.top();
+    espera.pop();
 
     quantum_restante[core] = quantum_total[core];
 
-    return menor_tiempo->second;
+    return menor_tiempo.second;
 }

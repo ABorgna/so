@@ -2,12 +2,15 @@
 #define __SCHED_RSJF__
 
 #include <algorithm>
-#include <set>
+#include <queue>
 #include <map>
 #include <vector>
 #include "basesched.h"
 
 using namespace std;
+
+template<typename T>
+using minheap = priority_queue<T, vector<T>, std::greater<T>>;
 
 class SchedRSJF : public SchedBase {
    public:
@@ -20,8 +23,8 @@ class SchedRSJF : public SchedBase {
 
    private:
     /* llenar */
-    set<pair<int, int>> espera;    //pid's en espera <tiempo, pid>
-    map<int, int> tiempos;         //<pid, tiempo>
+    minheap<pair<int, int>> espera; //pid's en espera <tiempo, pid>
+    map<int, int> tiempos;          //<pid, tiempo>
 
     vector<int> quantum_restante;  // deja vu
     vector<int> quantum_total;

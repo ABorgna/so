@@ -1,5 +1,7 @@
 \section{Ejercicio 4}
 
+\label{sec:rr}
+
 Para la implementación de \textbf{SchedRR} usamos una única cola de procesos para todos los cores, un vector que indica para cada cpu su cantidad de quantums y otro del mismo tamaño para indicar el estado actual de cada uno.
   \begin{lstlisting} [caption={Estructuras de la clase}]
      std::queue<int> q;
@@ -25,10 +27,10 @@ En esta implementación, de cargar una tarea justo después de que la única en 
       decrementar quantum[cpu]
       if quantum[cpu] > 0:
         return pid
-      if no hay procesos encolados:
+      if no hay procesos encolados y pid $\neq$ IDLE:
         resetear quantum[cpu]
         return pid
-      if pid != IDLE:
+      if pid $\neq$ IDLE:
         encolar pid
 
     if no hay procesos encolados:

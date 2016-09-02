@@ -1,2 +1,100 @@
 \section{Ejercicio 7}
 
+\subsection{Shortest Job First - No reentrante}
+
+  La implementación del scheduler de tipo \textbf{SchedSJF} ($Shortest\ Job\ First$) es muy similar a la de \textbf{SchedFCFS} porque ninguno es reentrante. La diferencia es que en vez de usar una cola común, una cola de prioridad respecto de las tareas con menor tiempo de ejecución total.
+  Además, por enunciado, tenemos asegurado que solamente correrán tareas de tipo $TaskCPU$. Es decir, no existen bloqueos y, por lo tanto, el tiempo de ejecución de cada tarea (pasado por parámetro) coincide exactamente con la cantidad de ciclos de cpu que va a consumir.
+  \\
+
+  Al inicializar el scheduler insertamos en un $map$ con $pid's$ de claves sus respectivos tiempos totales de ejecución.
+
+  \begin{lstlisting} [caption={Estructuras de la clase}]
+    template<typename T>
+    using minheap = priority_queue<T, vector<T>, std::greater<T>>;
+    [...]
+
+      minheap<pair<int, int>> espera;
+      map<int, int> tiempos;
+  \end{lstlisting}
+
+
+  De esta manera, cada vez que se cargue un $pid$ en el scheduler vamos a buscar su correspondiente tiempo de ejecución en el $map$ y encolar el par <$tiempo \ de \ ejecucion$, $pid$> en la cola de prioridad. Como el tipo $pair$ resuelve la relación de orden '<' priorizando el primer elemento, podemos asegurar que $espera.top()$ retorna un par con menor o igual tiempo de ejecución que el resto del conjunto.
+  \\
+
+  Partiendo de esto, el resto del scheduler se comporta idénticamente a uno de tipo $FCFS$.
+
+  \begin{lstlisting} [caption={Implementaci\'on de operaci\'on $tick$}]
+    if EXIT y no hay mas procesos en espera:
+      return IDLE
+    else if TICK:
+      if  tarea actual $\neq$ IDLE:
+        return tarea actual
+      else if no hay mas procesos en espera:
+        return IDLE
+
+    return pid desencolado de espera
+  \end{lstlisting}
+
+
+  Para ver un ejemplo, probemos con el siguiente caso simple:
+
+  \begin{center}
+  \fbox{\parbox{6cm}
+  	{\noindent
+      TaskCPU 10  \\
+      TaskCPU 9   \\
+      @4:         \\
+      TaskCPU 2
+  	}
+  }
+  \end{center}
+  \captionof{figure}{Lote de tareas usado}
+  \label{lst:ej7.lote}
+
+  \begin{figure}[H]
+  		\centering
+  		\includegraphics[width=\textwidth]{ej7-sjf}
+  		\caption{Ejecución del lote de la figura \ref{lst:ej7.lote} con un \'unico cpu }
+  		\label{fig:ej7.sjf}
+  \end{figure}
+
+\subsection{Shortest Job First - Reentrante}
+
+  La implementación del \textbf{SchedRSJF} usa exactamente la misma idea respecto del uso de un $map$ y una cola de prioridad para el tiempo de cada proceso. La diferencia es que, al ser reentrante, las tareas no se ejecutan necesariamente hasta que terminen. En cambio, se van rotando por turnos como en el \hyperref[sec:rr]{\textbf{SchedRR}} pero usando una cola de prioridad respecto de los procesos con menor tiempo restante de ejecución. Podemos confiar en que estos tiempos se ajusten a la práctica porque, al igual que antes, podemos asumir que solamente se ejecutarán tareas de tipo $TaskCPU$ y por lo tanto no habrá bloqueos.
+
+  \begin{lstlisting} [caption={Estructuras de la clase}]
+    minheap<pair<int, int>> espera;
+    map<int, int> tiempos;
+
+    vector<int> quantum_restante;
+    vector<int> quantum_total;
+  \end{lstlisting}
+
+  Salvo por el agregado de que no hay $ticks$ con motivo $BLOCK$, la operación sigue la misma idea. La única diferencia radica en que en cada $TICK$ hay que descontar el tiempo restante de ejecución del $pid$ actual para luego actualizar el par < $tiempo$, $pid$ >  de la cola de prioridad al reencolar la tarea.
+
+  \begin{lstlisting} [caption={Algoritmo para operaci\'on tick en shortest job first reentrante}]
+    if TICK:
+      decrementar quantum[cpu] y tiempos[pid]
+      if quantum[cpu] > 0:
+        return pid
+      if no hay procesos encolados y pid $\neq$ IDLE:
+        resetear quantum[cpu]
+        return pid
+      if pid $\neq$ IDLE:
+        encolar <tiempos[pid], pid>
+
+    if no hay procesos encolados:
+      if BLOCK return pid
+      else return IDLE
+
+    return nuevo pid del par desencolado y resetear quantum[cpu]
+  \end{lstlisting}
+
+  \begin{figure}[H]
+  		\centering
+  		\includegraphics[width=\textwidth]{ej7-rsjf}
+  		\caption{Ejecución del lote de la figura \ref{lst:ej7.lote} con un \'unico cpu de 4 quantums por turno}
+  		\label{fig:ej7.rsjf}
+  \end{figure}
+
+  Se puede ver que, al terminar el segundo turno de la tarea $1$, se volvió a ejecutar esta misma tarea en vez de la tarea $0$ porque le quedaba menos tiempo restante de ejecución.
