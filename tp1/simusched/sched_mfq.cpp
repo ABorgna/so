@@ -85,7 +85,12 @@ int SchedMFQ::tick(int core, const enum Motivo m) {
         }
         if (colasVacias(colas)) {
             quantumsRestantes[core] = quantumPid;
+            if(pid != IDLE_TASK){
+                laUltimaColaVisitada[colaPid].erase(pid);
+                laUltimaColaVisitada[min(colaPid+1,(int)laUltimaColaVisitada.size()-1)].insert(pid);
+            }
             return pid;
+
         }
     }
 
@@ -97,6 +102,7 @@ int SchedMFQ::tick(int core, const enum Motivo m) {
     // Si estoy corriendo alguna tarea, la encolo
     // un EXIT o un BLOCK no tiene que agregarla
     if (m == TICK && pid != IDLE_TASK) {
+        laUltimaColaVisitada[colaPid].erase(pid);
         colas[min((int)colas.size() - 1, colaPid + 1)].push(pid);
     }
 

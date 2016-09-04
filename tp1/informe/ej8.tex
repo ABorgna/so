@@ -161,5 +161,6 @@ Con estos valores podemos calcular el promedio de cada métrica para cada schedu
 
 \subsection{Conclusiones}
 
-TODO
+Al ver los resultados se puede notar, como era de esperarse que los Schedulers reentrantes consiguen una $latencia$ promedio menor debido a su forma de elección de procesos mas justa. Por otro lado el $Waiting-Time$ y $Turnaround$ estan mas peleados, el Scheduler $Round-Robin$ no parece desempeñarse demasiado bien en esos aspectos, es entendible ya que al permitir que los procesos se vayan turnando esto provoca que todos esten esperando una mayor cantidad de tiempo y tarden mas en terminar. El otro Scheduler Reentrante, RSJF al no ser completamente justo, sino que le da prioridad a los procesos que duran menos, logra perder algunas de las desventajas que Round Robin presenta y consigue algunas de las ventajas de sus contrapartes no reentrantes como FIFO y SJF.
 
+Un resultado interesante es como con un core el waiting-time y turnaround de RSJF pasa de tener resultados peores que SJF para luego conseguir superarlo al hacer mediciones sobre dos núcleos.

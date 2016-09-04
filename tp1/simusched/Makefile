@@ -94,9 +94,13 @@ $(OUT_DIR)/ej8-cpu-rsjf-m.png: tasks/ej8-cpu.tsk $(MAIN)
 	./simusched $< 2 1 2 SchedRSJF 4 4 10 20 5 5 5 \
 		| python2 ./graphsched.py > $@
 
-ejercicio9: $(OUT_DIR)/ej9.png
-$(OUT_DIR)/ej9.png: tasks/ej9.tsk $(MAIN)
-	./simusched $< 2 1 1 SchedMFQ 2 4 6 \
+ejercicio9: $(OUT_DIR)/ej9-1.png $(OUT_DIR)/ej9-2.png
+
+$(OUT_DIR)/ej9-1.png: tasks/ej9-1.tsk $(MAIN)
+	./simusched $< 1 1 1 SchedMFQ 2 4 6 \
+		| python2 ./graphsched.py > $@
+$(OUT_DIR)/ej9-2.png: tasks/ej9-2.tsk $(MAIN)
+	./simusched $< 2 1 1 SchedMFQ 2 3 4 \
 		| python2 ./graphsched.py > $@
 
 %.o: %.cpp %.h basesched.h

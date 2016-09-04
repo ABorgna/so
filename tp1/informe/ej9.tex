@@ -1,9 +1,21 @@
 \section{Ejercicio 9}
 
+Realizamos algunas pruebas del scheduler MFQ a partir de dos simples ejemplos. El primero recibe 4 tareas simultaneamente en tiempo 0 y el segundo las va recibiendo de a una por vez a medida que el tiempo avanza.
+
 \begin{figure}[H]
 		\centering
-		\includegraphics[width=\textwidth]{ej9}
-		\caption{asdae}
+		\includegraphics[width=\textwidth]{ej9-1}
+		\caption{Ejercución sobre un core, las tareas 0 y 3 son de tipo TaskCPU, la 1 y 2 TaskConsola.}
 		\label{fig:ej9}
 \end{figure}
 
+Al seguir el diagrama de Gantt del primer ejemplo se puede ver como los bloqueos de las tareas 1 y 2 le dan prioridad a dichos procesos, esta es una particularidad en el diseño del scheduler MFQ el cual toma la decisión de nunca bajar a una cola de menor nivel un proceso que se bloqueó. Al terminar las tareas 1 y 2, le toca el turno a la tarea 0 la cual habia ido a parar a una cola de menor nivel de prioridad. Esta cola tiene un quantum de 4, a diferencia de la de mayor prioridad que lo tiene de 2.
+
+\begin{figure}[H]
+		\centering
+		\includegraphics[width=\textwidth]{ej9-2}
+		\caption{Ejecución sobre dos cores, las tareas 0 y 3 son de tipo TaskCPU, la 1 y 2 TaskConsola. }
+		\label{fig:ej9}
+\end{figure}
+
+En este ejemplo se sigue notando la prioridad que se le da a los procesos que se bloquean aunque al haber dos cores los procesos 0 y 4 no deben esperar tanto para terminar, también se puede como al ir bajando a colas de menor prioridad los procesos 0 y 4 comienzan a durar mas tiempo corriendo, pasando de 2 ticks a 3 y luego 4.
