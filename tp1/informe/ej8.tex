@@ -60,7 +60,7 @@ Primero realizamos mediciones ejecutando sobre un solo núcleo.
                 \hline
     Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Turnaround} \\
                 \cline{2-13}
-          & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RIFO \\
+          & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF \\
                 \hline
     0 &       39 &   1 &   1 &  20 &        1 &   1 &   1 &   1 &       44 &  11 &  11 &  30 \\
     1 &       37 &  12 &  30 &  35 &        6 &  12 &  30 &  31 &       57 &  32 &  50 &  55 \\
@@ -129,7 +129,7 @@ Con estos valores podemos calcular el promedio de cada métrica para cada schedu
                 \hline
     Task & \multicolumn{4}{c |}{Waiting-time} & \multicolumn{4}{c |}{Latencia} & \multicolumn{4}{c |}{Turnaround} \\
                 \cline{2-13}
-          & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RIFO \\
+          & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF & RR & FIFO & SJF & RSJF \\
                 \hline
     0 &       16 &   1 &   1 &  10 &        1 &   1 &   1 &   1 &       26 &  11 &  11 &  20 \\
     1 &       17 &   1 &   1 &  16 &        1 &   1 &   1 &   1 &       37 &  21 &  21 &  36 \\
@@ -161,6 +161,8 @@ Con estos valores podemos calcular el promedio de cada métrica para cada schedu
 
 \subsection{Conclusiones}
 
-Al ver los resultados se puede notar, como era de esperarse que los Schedulers reentrantes consiguen una $latencia$ promedio menor debido a su forma de elección de procesos mas justa. Por otro lado el $Waiting-Time$ y $Turnaround$ estan mas peleados, el Scheduler $Round-Robin$ no parece desempeñarse demasiado bien en esos aspectos, es entendible ya que al permitir que los procesos se vayan turnando esto provoca que todos esten esperando una mayor cantidad de tiempo y tarden mas en terminar. El otro Scheduler Reentrante, RSJF al no ser completamente justo, sino que le da prioridad a los procesos que duran menos, logra perder algunas de las desventajas que Round Robin presenta y consigue algunas de las ventajas de sus contrapartes no reentrantes como FIFO y SJF.
+\ \ Al ver los resultados se puede notar, como era de esperarse, que los Schedulers reentrantes consiguen una $latencia$ promedio menor debido a su forma de elección de procesos más justa. Por otro lado el $Waiting$-$Time$ y $Turnaround$ están mas peleados, el Scheduler $Round-Robin$ no parece desempeñarse demasiado bien en esos aspectos, es entendible ya que al permitir que los procesos se vayan turnando esto provoca que todos esten esperando una mayor cantidad de tiempo y tarden más en terminar. El otro Scheduler Reentrante, RSJF al no ser completamente justo, sino que le da prioridad a los procesos que duran menos, logra perder algunas de las desventajas que Round Robin presenta y consigue algunas de las ventajas de sus contrapartes no reentrantes como FIFO y SJF. Particularmente se pierde menos tiempo por no tener que cambiar tanto entre contextos sobre el final cuando las tareas se vuelven extremadamente cortas en tiempo restante, como sí sucede en el Round-Robin, porque en el $RSJF$ siempre extiende el turno actual un poco más para terminar con estos pequeños restos (las tareas de 5 ciclos de longitud, a pesar de tener turnos de 4 ciclos, se ejecutan siempre enteras).
 
-Un resultado interesante es como con un core el waiting-time y turnaround de RSJF pasa de tener resultados peores que SJF para luego conseguir superarlo al hacer mediciones sobre dos núcleos.
+\ \ Siguiendo con la idea de contrastar reentrantes y no reentrantes, cuando analizamos para múltiples cores se puede notar que además de que los reentrantes terminan el lote en mayor cantidad de ciclos a causa del task-switching, terminan destinando más tiempo de cpu a la tarea $IDLE$ (lo cual no es problemático, pero indica de manera clara que la ejecución termina siendo más asimétrica), Esto último seguramente viene del hecho de que, en el lote de testeo, las tareas más longevas son aquellas que primero se cargan. A raíz de esto, los no-reentrantes se ocupan primero de las que más tiempo de ejecución consumen para luego terminar con las más cortas, que además son similares en longitud y, por lo tanto, los cpus ejecutan y terminan de manera relativamente pareja sin que ninguno se extienda demasiado.
+
+\ \ Un resultado interesante es como con un core el waiting-time y turnaround de RSJF pasa de tener resultados peores que SJF para luego conseguir superarlo al hacer mediciones sobre dos núcleos.
