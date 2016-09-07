@@ -1,2 +1,46 @@
 \section{Ejercicio 6}
 
+\begin{enumerate}[label=\alph*)]
+
+    \item
+
+
+        /*--------------------------------*
+
+        Parrafo del paper:
+
+        In this paper, we both focus on resource allocation and task
+scheduling, as well as take into account some specif
+c criteria
+or priorities of tasks and resources, such as resource bandwidth
+and processing capability, task granularity (f
+ne-grained and
+coarse-grained) and deadline.
+
+(Habría que decir que los "recursos" (nucleos?) no son homogeneos,
+pueden tener distintas características)
+
+        *--------------------------------*/
+
+    \item El algoritmo se ocupa de seleccionar tanto
+        la siguiente tarea a ejecutar como el recurso donde correrla.
+
+        Los diseños clásicos basados en agrupamientos juntan tareas de tipo
+        y características similares en lotes a ser despachados conjuntamente
+        a un recurso afin a las prioridades de las tareas.
+        El tamaño del grupo queda determinado por la cantidad de operaciones
+        estimada que tomará, la cuál no debe superar el límite de operaciones
+        asignado al recurso objetivo.
+
+        El algoritmo propuesto agrega una condición cuando el tiempo requerido
+        por una tarea es mayor al de los recursos necesarios, y la despacha
+        en un grupo separado para si sola. Ademas, intenta siempre ocupar
+        el recurso con mayor velocidad de ejecución primero, para así minimizar
+        el waiting time.
+
+        TODO: hace falta escribir el algoritmo en si?
+
+    \item
+
+\end{enumerate}
+
