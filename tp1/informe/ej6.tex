@@ -4,15 +4,15 @@
 
     \item
 
-	El paper se centra en la asignación de recursos y el scheduling de tareas considerando criterios y prioridades específicas para las diferentes características de las tareas solicitadas y recursos disponibles. Estas características son el ancho de banda de un recurso en particular, el cual afecta la latencia de las comunicaciones y las tasas de transmisión;
+	El paper se centra en la asignación de recursos y el scheduling de tareas para 'cloud computing' considerando criterios y prioridades específicas para las diferentes características de las tareas solicitadas y recursos disponibles. Estas características son el ancho de banda de un recurso en particular, el cual afecta la latencia de las comunicaciones y las tasas de transmisión;
 la capacidad de procesamiento del recurso, medido en $MIPS$ (Million of instructions per second); o la granularidad de cada tarea, es decir, la proporción de comunicación sobre cómputo que realizan. Aquellas que toman poco tiempo en procesar y comunican datos con frecuencia se denominan \emph{fine-grained}, en contraposición con aquellas que requieren mayor tiempo de ejecución y menos sincronización llamadas \emph{coarse-grained}. 
 
 	Una de las motivaciones para considerar la granularidad en sistemas en la nube es que si otorgamos recursos de alta capacidad de cómputo para tareas \emph{fine-grained}, estaríamos provocando overhead innecesario por destinar esos recursos para tareas que gastan mucho tiempo en scheduling y transmisión cuando sería óptimo que ejecuten siempre que sea posible.
 	
 	Otra característica a tener en cuenta es el \emph{deadline} de las tareas demandadas por clientes. Una de las principales motivaciones para la implementación propuesta en el paper además de minimizar waiting-time y desperdicios de recursos es, justamente, mejorar la calidad de servicio (\emph{QoS, Quality of Service}) percibida por el cliente.
 
-    \item El algoritmo generado para resolver el problema propuesto en el articulo es llamado $task grouping
-algorithm integrated with SJF and bandwidth awareness$, este se ocupa de seleccionar tanto
+    \item El algoritmo generado para resolver el problema propuesto en el articulo es llamado \emph{task grouping
+algorithm integrated with SJF and bandwidth awareness}, este se ocupa de seleccionar tanto
         la siguiente tarea a ejecutar como el recurso donde correrla.
 
         Los diseños clásicos basados en agrupamientos juntan tareas de tipo
