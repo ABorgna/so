@@ -4,23 +4,12 @@
 
     \item
 
-
-       % /*--------------------------------*
-
-       % Parrafo del paper:
-
-       % In this paper, we both focus on resource allocation and task scheduling, as well as take into account some specifc criteria or priorities of tasks and resources, such as resource bandwidth and processing capability, task granularity (fne-grained and coarse-grained) and deadline.
-
-	%(Habría que decir que los "recursos" (nucleos?) no son homogeneos, pueden tener distintas características)
-
 	El paper se centra en la asignación de recursos y el scheduling de tareas considerando criterios y prioridades específicas para las diferentes características de las tareas solicitadas y recursos disponibles. Estas características son el ancho de banda de un recurso en particular, el cual afecta la latencia de las comunicaciones y las tasas de transmisión;
 la capacidad de procesamiento del recurso, medido en $MIPS$ (Million of instructions per second); o la granularidad de cada tarea, es decir, la proporción de comunicación sobre cómputo que realizan. Aquellas que toman poco tiempo en procesar y comunican datos con frecuencia se denominan \emph{fine-grained}, en contraposición con aquellas que requieren mayor tiempo de ejecución y menos sincronización llamadas \emph{coarse-grained}. 
 
 	Una de las motivaciones para considerar la granularidad en sistemas en la nube es que si otorgamos recursos de alta capacidad de cómputo para tareas \emph{fine-grained}, estaríamos provocando overhead innecesario por destinar esos recursos para tareas que gastan mucho tiempo en scheduling y transmisión cuando sería óptimo que ejecuten siempre que sea posible.
 	
 	Otra característica a tener en cuenta es el \emph{deadline} de las tareas demandadas por clientes. Una de las principales motivaciones para la implementación propuesta en el paper además de minimizar waiting-time y desperdicios de recursos es, justamente, mejorar la calidad de servicio (\emph{QoS, Quality of Service}) percibida por el cliente.
-
-        %*--------------------------------*/
 
     \item El algoritmo generado para resolver el problema propuesto en el articulo es llamado $task grouping
 algorithm integrated with SJF and bandwidth awareness$, este se ocupa de seleccionar tanto
@@ -38,8 +27,6 @@ algorithm integrated with SJF and bandwidth awareness$, este se ocupa de selecci
         en un grupo separado para si sola. Ademas, intenta siempre ocupar
         el recurso con mayor velocidad de ejecución primero, para así minimizar
         el waiting time.
-
-        TODO: hace falta escribir el algoritmo en si?
 
     \item La experimentación consiste en comparar la performance del algoritmo de scheduling propuesto frente a otras posibles opciones. Para medir el desempeno se corrén los schedulers sobre un simulador de infraestructuras y servicios de cloud computing llamado CloudSim. Para cada scheduler se medirá el tiempo de espera medio entre todos los procesos, el tiempo total de procesamiento (Turnaround) y el costo de procesamiento variando la cantidad de procesos posibles y el tamaño de la granularidad. Para simular el ambiente de trabajo de un scheduler se generan tareas las cuales varian en sus requerimientos de procesado y tamaño de forma aleatoria.
 
