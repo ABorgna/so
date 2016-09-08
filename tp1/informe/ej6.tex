@@ -40,7 +40,9 @@ la capacidad de procesamiento del recurso, medido en $MIPS$ (Million of instruct
 
         TODO: hace falta escribir el algoritmo en si?
 
-    \item
+    \item La experimentación consiste en comparar la performance del algoritmo de scheduling propuesto frente a otras posibles opciones. Para medir el desempeno se corrén los schedulers sobre un simulador de infraestructuras y servicios de cloud computing llamado CloudSim. Para cada scheduler se medirá el tiempo de espera medio entre todos los procesos, el tiempo total de procesamiento (Turnaround) y el costo de procesamiento variando la cantidad de procesos posibles y el tamaño de la granularidad. Para simular el ambiente de trabajo de un scheduler se generan tareas las cuales varian en sus requerimientos de procesado y tamaño de forma aleatoria.
+
+El algoritmo del articulo, en comparación con los algoritmos de task grouping existentes, muestra una disminución en el waiting time y el processing time de mas del 30\%. Estos resultados favorables luego de la experimentación pudieron corroborar que el método propuesto, el algoritmo de task grouping integrado con SJF y bandwidth awareness, minimiza efectivamente el waiting time y el processing time al mismo tiempo que reduce el processing cost logrando una utilización optima de los recursos y un minimo overhead, reduciendo al mismo tiempo bottlenecks en el ancho de banda en comunicacion.
 
 \end{enumerate}
 
