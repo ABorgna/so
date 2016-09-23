@@ -1,5 +1,7 @@
 #include "tasks.h"
 #include <algorithm>
+#include <set>
+#include <iostream>
 
 using namespace std;
 
@@ -35,27 +37,30 @@ void TaskBatch(int pid, vector<int> params) {  // params: total_cpu, cant_bloque
     int time = params[0], bloqueos = params[1];
 
     // El proceso siempre consume un tiempo al terminar
-    int tiempoALlenar = time-bloqueos-1;
+    if(bloqueos >= time) return;
 
-    vector<int> tiempos;
+    set<int> tiempos;
 
     for(int i=0; i<bloqueos; i++) {
-        tiempos.push_back(rand() % (tiempoALlenar + 1));
+        int t;
+        do {
+            t = rand() % (time-1);
+        } while(tiempos.find(t) != tiempos.end());
+        tiempos.insert(t);
     }
-
-    sort(tiempos.begin(), tiempos.end());
 
     int timeCounter = 0;
     for(auto it=tiempos.begin(); it != tiempos.end(); it++) {
         if(timeCounter < *it) {
-            uso_CPU(pid, *it-timeCounter);
+            uso_CPU(pid, *it - timeCounter);
             timeCounter = *it;
         }
         uso_IO(pid, 2);
+        timeCounter++;
     }
 
-    if(timeCounter < tiempoALlenar) {
-        uso_CPU(pid, tiempoALlenar-timeCounter);
+    if(timeCounter < time-1) {
+        uso_CPU(pid, time-1-timeCounter);
     }
 }
 
