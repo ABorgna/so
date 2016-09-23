@@ -1,28 +1,33 @@
 \section{Ejercicio 3}
 
 La \textbf{TaskBatch} debe usar la CPU durante $total\_cpu$ ciclos de reloj.
-Como cada bloqueo utiliza un ciclo para iniciarse, el tiempo extra que tendremos que
-usar la CPU sera de $t_{total} = total\_cpu - cant\_bloqueos$.
-
-Para acomodar todos los bloqueos pseudo-aleatoriamente decidimos en qué luego de cuanto
-tiempo extra lanzar cada una utilizando la función \textsf{rand()} y la insertamos en un vector ordenado.
-Luego procedemos recorremos el array esperando el tiempo necesario.
+Como cada bloqueo utiliza un ciclo para iniciarse, podemos distribuirlos uniformemente
+eligiendo para cada uno en qué tiempo de ejecución correr, checkeando que no se repita.
+Como no se puede bloquear en el último tiempo de cpu del proceso, generamos las
+posiciones como un número aleatorio entre $0$ y $total\_cpu - 1$ con la función
+\textsf{rand()}.
 
 El algoritmo se detalla en el listing \ref{ej3-algo}
 
 \begin{lstlisting} [caption={Generacion aleatoria de la secuencia de bloqueos},label=ej3-algo]j
+set $bloqueos$
 for $i$ in range($cant\_bloqueos$):
-    agregar (rand() % ($t_{total} + 1$)) al array ordenado $bloqueos$
+    do:
+        $tiempo$ $\gets$ rand() % ($total_{cpu}$ - 1)
+    while $tiempo$ ya esta en $bloqueos$
 
-$tiempoExtraConsumido$ $\leftarrow$ 0
-for $t_{bloqueo}$ in $bloqueos$:
-    if $tiempoExtraConsumido$ < $t_{bloqueo}$:
-        usar la cpu por ($t_{bloqueo}$ - $tiempoExtraConsumido$) ciclos
-        $tiempoExtraConsumido$ $\leftarrow$ $t_{bloqueo}$
+    agregar $tiempo$ al conjunto $bloqueos$
+
+$tiempoConsumido$ $\gets$ 0
+for $t_{bloqueo}$ in $bloqueos$: // $bloqueos$ se recorre ordenado
+    if $tiempoConsumido$ < $t_{bloqueo}$:
+        usar la cpu por ($t_{bloqueo}$ - $tiempoConsumido$) ciclos
+        $tiempoConsumido$ $\gets$ $t_{bloqueo}$
     bloquear la tarea por 2 ciclos
+    $tiempoConsumido$++
 
-if $tiempoExtraConsumido$ < $t_{total}$:
-    usar la cpu por ($t_{total}$ - $tiempoExtraConsumido$) ciclos
+if $tiempoConsumido$ < $total_{cpu}$ - 1:
+    usar la cpu por ($total_{cpu}$ - 1 - $tiempoConsumido$) ciclos
 
 \end{lstlisting}
 
