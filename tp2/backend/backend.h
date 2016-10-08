@@ -1,11 +1,15 @@
-#ifndef Backend_mono_h
-#define Backend_mono_h
+#ifndef Backend_multi_h
+#define Backend_multi_h
 
 #include "casillero.h"
 #include "encabezado.h"
 #include "enviar_recibir.h"
 
+#include <pthread.h>
+#include <utility>  //pair
+
 using namespace std;
+
 bool cargar_int(const char* numero, unsigned int& n);
 
 void atendedor_de_jugador(int socket_fd);

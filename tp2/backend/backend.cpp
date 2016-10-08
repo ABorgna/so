@@ -1,4 +1,6 @@
+
 #include "backend.h"
+#include "locks/RWLock.h"
 
 using namespace std;
 
@@ -6,12 +8,15 @@ using namespace std;
 int socket_servidor = -1;
 
 // variables globales del juego
-vector<vector<char> >
-    tablero_temporal;  // tiene cartas que aún no están confirmadas
-vector<vector<char> >
-    tablero_confirmado;  // solamente tiene las cartas confirmadas
+vector<vector<pair<char, int> > > tablero;  // char para la carta e int id del
+                                            // jugador (0 si es confirmada),
+                                            // TODO: hay que hacerlo atómico
+                                            // creo
+
 unsigned int ancho = -1;
 unsigned int alto = -1;
+
+RWLock tablero_lock;
 
 bool cargar_int(const char* numero, unsigned int& n) {
     char* eptr;
@@ -45,16 +50,8 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-    // inicializar ambos tableros, se accede como tablero[fila][columna]
-    tablero_temporal = vector<vector<char> >(alto);
-    for (unsigned int i = 0; i < alto; ++i) {
-        tablero_temporal[i] = vector<char>(ancho, VACIO);
-    }
-
-    tablero_confirmado = vector<vector<char> >(alto);
-    for (unsigned int i = 0; i < alto; ++i) {
-        tablero_confirmado[i] = vector<char>(ancho, VACIO);
-    }
+    // inicializar el, se accede como tablero[fila][columna]
+    tablero = vector<vector<pair<char, int>> >(alto);
 
     int socketfd_cliente, socket_size;
     struct sockaddr_in local, remoto;
@@ -86,14 +83,17 @@ int main(int argc, const char* argv[]) {
 
     // aceptar conexiones entrantes.
     socket_size = sizeof(remoto);
+
     while (true) {
         if ((socketfd_cliente =
                  accept(socket_servidor, (struct sockaddr*)&remoto,
                         (socklen_t*)&socket_size)) == -1)
             cerr << "Error al aceptar conexion" << endl;
         else {
-            close(socket_servidor);
-            atendedor_de_jugador(socketfd_cliente);
+            // igual que antes, pero necesitamos mantener el socket para seguir
+            // lanzando threads por cada jugador
+            pthread_t tid;
+            pthread_create(&tid, NULL, (void* (*)(void*)) &atendedor_de_jugador, &socketfd_cliente);
         }
     }
 
@@ -118,6 +118,8 @@ void atendedor_de_jugador(int socket_fd) {
 
     cout << "Esperando que juegue " << nombre_jugador << endl;
 
+    pid_t pid_jugador = getpid();
+
     while (true) {
         // espera una carta o la confirmación de la jugada
         char mensaje[MENSAJE_MAXIMO + 1];
@@ -132,9 +134,15 @@ void atendedor_de_jugador(int socket_fd) {
 
             // ficha contiene la nueva carta a colocar
             // verificar si es una posición válida del tablero
+            tablero_lock.wlock();
             if (es_ficha_valida_en_jugada(ficha, jugada_actual)) {
+                tablero[ficha.fila][ficha.columna] =
+                    make_pair(ficha.contenido, pid_jugador);
+                // numero_jugador != 0, por lo tanto es provisoria
+                tablero_lock.wunlock();
+
                 jugada_actual.push_back(ficha);
-                tablero_temporal[ficha.fila][ficha.columna] = ficha.contenido;
+
                 // OK
                 if (enviar_ok(socket_fd) != 0) {
                     // se produjo un error al enviar. Cerramos todo.
@@ -142,6 +150,7 @@ void atendedor_de_jugador(int socket_fd) {
                 }
             } else {
                 quitar_cartas(jugada_actual);
+                tablero_lock.wunlock();
                 // ERROR
                 if (enviar_error(socket_fd) != 0) {
                     // se produjo un error al enviar. Cerramos todo.
@@ -154,9 +163,11 @@ void atendedor_de_jugador(int socket_fd) {
             for (list<Casillero>::const_iterator casillero =
                      jugada_actual.begin();
                  casillero != jugada_actual.end(); casillero++) {
-                tablero_confirmado[casillero->fila][casillero->columna] =
-                    casillero->contenido;
+                tablero[casillero->fila][casillero->columna] =
+                    make_pair(casillero->contenido, 0);
+                // queda confirmada, entonces el dueño es 0
             }
+            tablero_lock.wunlock();
             jugada_actual.clear();
 
             if (enviar_ok(socket_fd) != 0) {
@@ -164,14 +175,17 @@ void atendedor_de_jugador(int socket_fd) {
                 terminar_servidor_de_jugador(socket_fd, jugada_actual);
             }
         } else if (comando == MSG_UPDATE) {
+            tablero_lock.wunlock();
             if (enviar_tablero(socket_fd) != 0) {
                 // se produjo un error al enviar. Cerramos todo.
                 terminar_servidor_de_jugador(socket_fd, jugada_actual);
             }
         } else if (comando == MSG_INVALID) {
+            tablero_lock.wunlock();
             // no es un mensaje válido, hacer de cuenta que nunca llegó
             continue;
         } else {
+            tablero_lock.wunlock();
             // se produjo un error al recibir. Cerramos todo.
             terminar_servidor_de_jugador(socket_fd, jugada_actual);
         }
@@ -179,7 +193,6 @@ void atendedor_de_jugador(int socket_fd) {
 }
 
 // mensajes recibidos por el server
-
 int recibir_nombre(int socket_fd, char* nombre) {
     char buf[MENSAJE_MAXIMO + 1];
 
@@ -249,13 +262,18 @@ int enviar_tablero(int socket_fd) {
     char buf[MENSAJE_MAXIMO + 1];
     sprintf(buf, "STATUS ");
     int pos = 7;
+
+    // Que no escriba nadie
+    tablero_lock.rlock();
     for (unsigned int fila = 0; fila < alto; ++fila) {
         for (unsigned int col = 0; col < ancho; ++col) {
-            char contenido = tablero_confirmado[fila][col];
+            char contenido = tablero[fila][col].first;
             buf[pos] = (contenido == VACIO) ? '-' : contenido;
             pos++;
         }
     }
+    tablero_lock.runlock();
+
     buf[pos] = 0;  // end of buffer
 
     return enviar(socket_fd, buf);
@@ -272,7 +290,6 @@ int enviar_error(int socket_fd) {
     sprintf(buf, "ERROR");
     return enviar(socket_fd, buf);
 }
-
 // otras funciones
 
 void cerrar_servidor(__attribute__((unused)) int signal) {
@@ -294,11 +311,34 @@ void terminar_servidor_de_jugador(int socket_fd,
 }
 
 void quitar_cartas(list<Casillero>& jugada_actual) {
+    tablero_lock.wlock();
+
     for (list<Casillero>::const_iterator casillero = jugada_actual.begin();
          casillero != jugada_actual.end(); casillero++) {
-        tablero_temporal[casillero->fila][casillero->columna] = VACIO;
+        tablero[casillero->fila][casillero->columna] = {0, 0};
     }
+
+    tablero_lock.wunlock();
+
     jugada_actual.clear();
+}
+
+Casillero casillero_mas_distante_de(const Casillero& ficha,
+                                    const list<Casillero>& jugada_actual) {
+    const Casillero* mas_distante;
+    int max_distancia = -1;
+    for (list<Casillero>::const_iterator casillero = jugada_actual.begin();
+         casillero != jugada_actual.end(); casillero++) {
+        int distancia =
+            max<unsigned int>(abs((int)(casillero->fila - ficha.fila)),
+                              abs((int)(casillero->columna - ficha.columna)));
+        if (distancia > max_distancia) {
+            max_distancia = distancia;
+            mas_distante = &*casillero;
+        }
+    }
+
+    return *mas_distante;
 }
 
 bool es_ficha_valida_en_jugada(const Casillero& ficha,
@@ -309,9 +349,12 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
     }
 
     // si el casillero está ocupado, tampoco es válida
-    if (tablero_temporal[ficha.fila][ficha.columna] != VACIO) {
+    tablero_lock.rlock();
+    if (tablero[ficha.fila][ficha.columna].first != VACIO) {
+        tablero_lock.runlock();
         return false;
     }
+    tablero_lock.runlock();
 
     if (jugada_actual.size() > 0) {
         // no es la primera carta de lajugada, ya hay fichas colocadas en esta
@@ -337,10 +380,13 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                  columna != ficha.columna; columna += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
+                tablero_lock.rlock();
                 if (!(puso_carta_en(ficha.fila, columna, jugada_actual)) &&
-                    tablero_confirmado[ficha.fila][columna] == VACIO) {
+                    tablero[ficha.fila][columna] == pair<char,int>(0,0)) {
+                    tablero_lock.runlock();
                     return false;
                 }
+                tablero_lock.runlock();
             }
 
         } else if (distancia_horizontal == 0) {
@@ -359,10 +405,13 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                  fila += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
+                tablero_lock.rlock();
                 if (!(puso_carta_en(fila, ficha.columna, jugada_actual)) &&
-                    tablero_confirmado[fila][ficha.columna] == VACIO) {
+                    tablero[fila][ficha.columna] == pair<char,int>(0,0)) {
+                    tablero_lock.runlock();
                     return false;
                 }
+                tablero_lock.runlock();
             }
         } else {
             // no están alineadas ni horizontal ni verticalmente
@@ -371,24 +420,6 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
     }
 
     return true;
-}
-
-Casillero casillero_mas_distante_de(const Casillero& ficha,
-                                    const list<Casillero>& jugada_actual) {
-    const Casillero* mas_distante;
-    int max_distancia = -1;
-    for (list<Casillero>::const_iterator casillero = jugada_actual.begin();
-         casillero != jugada_actual.end(); casillero++) {
-        int distancia =
-            max<unsigned int>(abs((int)(casillero->fila - ficha.fila)),
-                              abs((int)(casillero->columna - ficha.columna)));
-        if (distancia > max_distancia) {
-            max_distancia = distancia;
-            mas_distante = &*casillero;
-        }
-    }
-
-    return *mas_distante;
 }
 
 bool puso_carta_en(unsigned int fila, unsigned int columna,
