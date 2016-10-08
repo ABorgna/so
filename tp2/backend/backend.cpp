@@ -53,7 +53,7 @@ int main(int argc, const char* argv[]) {
     // inicializar el, se accede como tablero[fila][columna]
     tablero = vector<vector<pair<char, int>> >(alto);
 
-    int socketfd_cliente, socket_size;
+    long socketfd_cliente, socket_size;
     struct sockaddr_in local, remoto;
 
     // crear un socket de tipo INET con TCP (SOCK_STREAM)
@@ -93,14 +93,14 @@ int main(int argc, const char* argv[]) {
             // igual que antes, pero necesitamos mantener el socket para seguir
             // lanzando threads por cada jugador
             pthread_t tid;
-            pthread_create(&tid, NULL, (void* (*)(void*)) &atendedor_de_jugador, &socketfd_cliente);
+            pthread_create(&tid, NULL, (void* (*)(void*)) &atendedor_de_jugador, (void*) socketfd_cliente);
         }
     }
 
     return 0;
 }
 
-void atendedor_de_jugador(int socket_fd) {
+void atendedor_de_jugador(long socket_fd) {
     // variables locales del jugador
     char nombre_jugador[21];
     list<Casillero>
