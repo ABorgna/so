@@ -116,7 +116,7 @@ void atendedor_de_jugador(long socket_fd) {
 
     cout << "Esperando que juegue " << nombre_jugador << endl;
 
-    pid_t pid_jugador = getpid();
+    pthread_t id_jugador = pthread_self();
 
     while (true) {
         // espera una carta o la confirmación de la jugada
@@ -135,8 +135,8 @@ void atendedor_de_jugador(long socket_fd) {
             tablero_lock.wlock();
             if (es_ficha_valida_en_jugada(ficha, jugada_actual)) {
                 tablero[ficha.fila][ficha.columna] =
-                    make_pair(ficha.contenido, pid_jugador);
-                // numero_jugador != 0, por lo tanto es provisoria
+                    make_pair(ficha.contenido, id_jugador);
+                // id_jugador != 0, por lo tanto es provisoria
                 tablero_lock.wunlock();
 
                 jugada_actual.push_back(ficha);
@@ -147,8 +147,8 @@ void atendedor_de_jugador(long socket_fd) {
                     terminar_servidor_de_jugador(socket_fd, jugada_actual);
                 }
             } else {
-                quitar_cartas(jugada_actual);
                 tablero_lock.wunlock();
+                quitar_cartas(jugada_actual);
                 // ERROR
                 if (enviar_error(socket_fd) != 0) {
                     // se produjo un error al enviar. Cerramos todo.
