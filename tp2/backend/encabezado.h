@@ -21,6 +21,7 @@
 #define DATO_MAXIMO 100
 
 #define VACIO 0x20
+#define RESERVADO 0x01
 #define CORAZON 0x43
 #define PICA 0x50
 #define TREBOL 0x54

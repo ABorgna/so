@@ -8,8 +8,7 @@ using namespace std;
 int socket_servidor = -1;
 
 // variables globales del juego
-vector<vector<pair<char, bool> > > tablero; // char para la carta y si es
-                                            // confirmada
+vector<vector<char>> tablero;  // la carta puede ser el palo, VACIO o RESERVADO
 
 unsigned int ancho = -1;
 unsigned int alto = -1;
@@ -49,7 +48,7 @@ int main(int argc, const char* argv[]) {
     }
 
     // inicializar el, se accede como tablero[fila][columna]
-    tablero = vector<vector<pair<char, bool>> >(alto, vector<pair<char,bool> > (ancho, make_pair(VACIO, true)));
+    tablero = vector<vector<char>>(alto, vector<char>(ancho, VACIO));
 
     long socketfd_cliente, socket_size;
     struct sockaddr_in local, remoto;
@@ -91,7 +90,9 @@ int main(int argc, const char* argv[]) {
             // igual que antes, pero necesitamos mantener el socket para seguir
             // lanzando threads por cada jugador
             pthread_t tid;
-            pthread_create(&tid, NULL, (void* (*)(void*)) &atendedor_de_jugador, (void*) socketfd_cliente);
+            pthread_create(&tid, NULL,
+                           (void* (*)(void*)) & atendedor_de_jugador,
+                           (void*)socketfd_cliente);
         }
     }
 
@@ -132,9 +133,8 @@ void atendedor_de_jugador(long socket_fd) {
             // verificar si es una posición válida del tablero
             tablero_lock.wlock();
             if (es_ficha_valida_en_jugada(ficha, jugada_actual)) {
-                tablero[ficha.fila][ficha.columna] =
-                    make_pair(ficha.contenido, false);
-                // id_jugador != 0, por lo tanto es provisoria
+                tablero[ficha.fila][ficha.columna] = RESERVADO;
+
                 tablero_lock.wunlock();
 
                 jugada_actual.push_back(ficha);
@@ -161,8 +161,7 @@ void atendedor_de_jugador(long socket_fd) {
                      jugada_actual.begin();
                  casillero != jugada_actual.end(); casillero++) {
                 tablero[casillero->fila][casillero->columna] =
-                    make_pair(casillero->contenido, true);
-                // queda confirmada, entonces el dueño es 0
+                    casillero->contenido;
             }
             tablero_lock.wunlock();
             jugada_actual.clear();
@@ -261,9 +260,8 @@ int enviar_tablero(int socket_fd) {
     tablero_lock.rlock();
     for (unsigned int fila = 0; fila < alto; ++fila) {
         for (unsigned int col = 0; col < ancho; ++col) {
-            char contenido = tablero[fila][col].first;
-            bool confirmada = tablero[fila][col].second;
-            buf[pos] = ((contenido == VACIO) or !confirmada ) ? '-' : contenido;
+            char carta = tablero[fila][col];
+            buf[pos] = carta == VACIO or carta == RESERVADO ? '-' : carta;
             pos++;
         }
     }
@@ -310,7 +308,7 @@ void quitar_cartas(list<Casillero>& jugada_actual) {
 
     for (list<Casillero>::const_iterator casillero = jugada_actual.begin();
          casillero != jugada_actual.end(); casillero++) {
-        tablero[casillero->fila][casillero->columna] = {VACIO, true};
+        tablero[casillero->fila][casillero->columna] = VACIO;
     }
 
     tablero_lock.wunlock();
@@ -345,9 +343,8 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
 
     // si el casillero está ocupado, tampoco es válida
     // ya se lockeó el tablero antes de llamar a la función
-    if (tablero[ficha.fila][ficha.columna].first != VACIO)
+    if (tablero[ficha.fila][ficha.columna] != VACIO)
         return false;
-
 
     if (jugada_actual.size() > 0) {
         // no es la primera carta de lajugada, ya hay fichas colocadas en esta
@@ -374,7 +371,7 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
                 if (!(puso_carta_en(ficha.fila, columna, jugada_actual)) &&
-                    tablero[ficha.fila][columna].first == VACIO) {
+                    tablero[ficha.fila][columna] == VACIO) {
                     tablero_lock.runlock();
                     return false;
                 }
@@ -397,7 +394,7 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
                 if (!(puso_carta_en(fila, ficha.columna, jugada_actual)) &&
-                    tablero[fila][ficha.columna].first == VACIO) {
+                    tablero[fila][ficha.columna] == VACIO) {
                     tablero_lock.runlock();
                     return false;
                 }
