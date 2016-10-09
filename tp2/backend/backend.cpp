@@ -10,8 +10,6 @@ int socket_servidor = -1;
 // variables globales del juego
 vector<vector<pair<char, int> > > tablero;  // char para la carta e int id del
                                             // jugador (0 si es confirmada),
-                                            // TODO: hay que hacerlo atómico
-                                            // creo
 
 unsigned int ancho = -1;
 unsigned int alto = -1;
@@ -51,7 +49,7 @@ int main(int argc, const char* argv[]) {
     }
 
     // inicializar el, se accede como tablero[fila][columna]
-    tablero = vector<vector<pair<char, int>> >(alto);
+    tablero = vector<vector<pair<char, int>> >(alto, vector<pair<char,int> >(ancho, make_pair(VACIO, 0)));
 
     long socketfd_cliente, socket_size;
     struct sockaddr_in local, remoto;
@@ -160,6 +158,7 @@ void atendedor_de_jugador(long socket_fd) {
         } else if (comando == MSG_CONFIRMO) {
             // las cartas acumuladas conforman una jugada completa, escribirlas
             // en el tablero y borrar las cartas temporales
+            tablero_lock.wlock();
             for (list<Casillero>::const_iterator casillero =
                      jugada_actual.begin();
                  casillero != jugada_actual.end(); casillero++) {
@@ -175,17 +174,14 @@ void atendedor_de_jugador(long socket_fd) {
                 terminar_servidor_de_jugador(socket_fd, jugada_actual);
             }
         } else if (comando == MSG_UPDATE) {
-            tablero_lock.wunlock();
             if (enviar_tablero(socket_fd) != 0) {
                 // se produjo un error al enviar. Cerramos todo.
                 terminar_servidor_de_jugador(socket_fd, jugada_actual);
             }
         } else if (comando == MSG_INVALID) {
-            tablero_lock.wunlock();
             // no es un mensaje válido, hacer de cuenta que nunca llegó
             continue;
         } else {
-            tablero_lock.wunlock();
             // se produjo un error al recibir. Cerramos todo.
             terminar_servidor_de_jugador(socket_fd, jugada_actual);
         }
@@ -349,12 +345,10 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
     }
 
     // si el casillero está ocupado, tampoco es válida
-    tablero_lock.rlock();
-    if (tablero[ficha.fila][ficha.columna].first != VACIO) {
-        tablero_lock.runlock();
+    // ya se lockeó el tablero antes de llamar a la función
+    if (tablero[ficha.fila][ficha.columna].first != VACIO)
         return false;
-    }
-    tablero_lock.runlock();
+
 
     if (jugada_actual.size() > 0) {
         // no es la primera carta de lajugada, ya hay fichas colocadas en esta
@@ -380,13 +374,11 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                  columna != ficha.columna; columna += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
-                tablero_lock.rlock();
                 if (!(puso_carta_en(ficha.fila, columna, jugada_actual)) &&
                     tablero[ficha.fila][columna] == pair<char,int>(0,0)) {
                     tablero_lock.runlock();
                     return false;
                 }
-                tablero_lock.runlock();
             }
 
         } else if (distancia_horizontal == 0) {
@@ -405,13 +397,11 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                  fila += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
-                tablero_lock.rlock();
                 if (!(puso_carta_en(fila, ficha.columna, jugada_actual)) &&
                     tablero[fila][ficha.columna] == pair<char,int>(0,0)) {
                     tablero_lock.runlock();
                     return false;
                 }
-                tablero_lock.runlock();
             }
         } else {
             // no están alineadas ni horizontal ni verticalmente
