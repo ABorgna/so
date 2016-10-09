@@ -370,9 +370,11 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                  columna != ficha.columna; columna += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
-                if (!(puso_carta_en(ficha.fila, columna, jugada_actual)) &&
-                    tablero[ficha.fila][columna] == VACIO) {
-                    tablero_lock.runlock();
+                bool en_jugada =
+                    puso_carta_en(ficha.fila, columna, jugada_actual);
+                bool fue_confirmado = tablero[ficha.fila][columna] != VACIO &&
+                                      tablero[ficha.fila][columna] != RESERVADO;
+                if (!en_jugada && !fue_confirmado) {
                     return false;
                 }
             }
@@ -393,9 +395,11 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                  fila += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
-                if (!(puso_carta_en(fila, ficha.columna, jugada_actual)) &&
-                    tablero[fila][ficha.columna] == VACIO) {
-                    tablero_lock.runlock();
+                bool en_jugada =
+                    puso_carta_en(fila, ficha.columna, jugada_actual);
+                bool fue_confirmado = tablero[fila][ficha.columna] != VACIO &&
+                                      tablero[fila][ficha.columna] != RESERVADO;
+                if (!en_jugada && !fue_confirmado) {
                     return false;
                 }
             }
