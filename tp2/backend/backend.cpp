@@ -8,8 +8,8 @@ using namespace std;
 int socket_servidor = -1;
 
 // variables globales del juego
-vector<vector<pair<char, int> > > tablero;  // char para la carta e int id del
-                                            // jugador (0 si es confirmada),
+vector<vector<pair<char, bool> > > tablero; // char para la carta y si es
+                                            // confirmada
 
 unsigned int ancho = -1;
 unsigned int alto = -1;
@@ -49,7 +49,7 @@ int main(int argc, const char* argv[]) {
     }
 
     // inicializar el, se accede como tablero[fila][columna]
-    tablero = vector<vector<pair<char, int>> >(alto, vector<pair<char,int> >(ancho, make_pair(VACIO, 0)));
+    tablero = vector<vector<pair<char, bool>> >(alto, vector<pair<char,bool> > (ancho, make_pair(VACIO, true)));
 
     long socketfd_cliente, socket_size;
     struct sockaddr_in local, remoto;
@@ -116,8 +116,6 @@ void atendedor_de_jugador(long socket_fd) {
 
     cout << "Esperando que juegue " << nombre_jugador << endl;
 
-    pthread_t id_jugador = pthread_self();
-
     while (true) {
         // espera una carta o la confirmación de la jugada
         char mensaje[MENSAJE_MAXIMO + 1];
@@ -135,7 +133,7 @@ void atendedor_de_jugador(long socket_fd) {
             tablero_lock.wlock();
             if (es_ficha_valida_en_jugada(ficha, jugada_actual)) {
                 tablero[ficha.fila][ficha.columna] =
-                    make_pair(ficha.contenido, id_jugador);
+                    make_pair(ficha.contenido, false);
                 // id_jugador != 0, por lo tanto es provisoria
                 tablero_lock.wunlock();
 
@@ -163,7 +161,7 @@ void atendedor_de_jugador(long socket_fd) {
                      jugada_actual.begin();
                  casillero != jugada_actual.end(); casillero++) {
                 tablero[casillero->fila][casillero->columna] =
-                    make_pair(casillero->contenido, 0);
+                    make_pair(casillero->contenido, true);
                 // queda confirmada, entonces el dueño es 0
             }
             tablero_lock.wunlock();
@@ -264,7 +262,8 @@ int enviar_tablero(int socket_fd) {
     for (unsigned int fila = 0; fila < alto; ++fila) {
         for (unsigned int col = 0; col < ancho; ++col) {
             char contenido = tablero[fila][col].first;
-            buf[pos] = (contenido == VACIO) ? '-' : contenido;
+            bool confirmada = tablero[fila][col].second;
+            buf[pos] = ((contenido == VACIO) or !confirmada ) ? '-' : contenido;
             pos++;
         }
     }
@@ -311,7 +310,7 @@ void quitar_cartas(list<Casillero>& jugada_actual) {
 
     for (list<Casillero>::const_iterator casillero = jugada_actual.begin();
          casillero != jugada_actual.end(); casillero++) {
-        tablero[casillero->fila][casillero->columna] = {0, 0};
+        tablero[casillero->fila][casillero->columna] = {VACIO, true};
     }
 
     tablero_lock.wunlock();
@@ -375,7 +374,7 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
                 if (!(puso_carta_en(ficha.fila, columna, jugada_actual)) &&
-                    tablero[ficha.fila][columna] == pair<char,int>(0,0)) {
+                    tablero[ficha.fila][columna].first == VACIO) {
                     tablero_lock.runlock();
                     return false;
                 }
@@ -398,7 +397,7 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha,
                 // el casillero DEBE estar ocupado en el tablero de jugadas
                 // confirmadas
                 if (!(puso_carta_en(fila, ficha.columna, jugada_actual)) &&
-                    tablero[fila][ficha.columna] == pair<char,int>(0,0)) {
+                    tablero[fila][ficha.columna].first == VACIO) {
                     tablero_lock.runlock();
                     return false;
                 }
