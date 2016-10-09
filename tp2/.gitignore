@@ -1,4 +1,5 @@
 backend/backend
+backend/locks/test
 
 *.pyc
 *.o

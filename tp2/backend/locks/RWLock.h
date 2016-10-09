@@ -10,7 +10,7 @@ class RWLock {
     void runlock();
     void wunlock();
 
-   private:
+   protected:
     pthread_mutex_t m;
     pthread_cond_t turn; /* Event: someone else's turn */
 
