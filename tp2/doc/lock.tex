@@ -1,2 +1,116 @@
 \section{RWLock}
 
+\subsection{Pseudocodigo de los algoritmos}
+
+Los algoritmos descritos a continuación son parte de los métodos de la clase RWLock, la cual esta formada por un mutex $m$, una variable de condición $turn$ y tres int $reading$, $writing$ y $writers$.
+
+Los algoritmos de bloqueo, rlock y wlock funcionan chequeando que las condiciones son aptas para realizar su accion (leer o escribir respectivamente) y luego indican que van a realizar dicha acción a traves de las variables $reading$ y $writing$. Estas variables indican cuantas personas estan leyendo o escribiendo, en el caso de $reading$ la cantidad puede ser un numero positivo o cero ya que no hay problema en que multiples personas lean una variable, por otra parte $writing$ solo puede valor 0 o 1 ya que no puede permitirse que multiples personas esten editando la misma variable porque generaría $race conditions$. La variable $writers$ indicará cuantas personas quieren escribir.
+
+\begin{algorithm}[H]
+  \begin{algorithmic}[1]
+  \caption{Pseudocódigo del bloqueador para lectura}
+  \label{algo:3-1}
+  \Procedure{rlock}{$ $}
+	\State $mutex\_lock(\&m)$
+
+	\While {$ writers $}
+		\State $ cond\_wait(\&turn, \&m) $
+	\EndWhile
+	\While {$ writing $}
+		\State $ cond\_wait(\&turn, \&m) $
+	\EndWhile
+	
+	\State $reading$ $\leftarrow$ $reading + 1$
+	\State $mutex\_unlock(\&m)$
+
+	\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \begin{algorithmic}[1]
+  \caption{Pseudocódigo del bloqueador para escritura}
+  \label{algo:3-1}
+  \Procedure{wlock}{$ $}
+	\State $mutex\_lock(\&m)$
+
+	\While {$ writers $}
+		\State $ cond\_wait(\&turn, \&m) $
+	\EndWhile
+	\State $writers$ $\leftarrow$ $writers + 1$
+	\While {$reading$ $or$ $writing$}
+		\State $ cond\_wait(\&turn, \&m) $
+	\EndWhile
+	
+	\State $writing$ $\leftarrow$ $writing + 1$
+
+	\State $mutex\_unlock(\&m)$
+
+	\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+Los algoritmos de desbloqueo, runlock y wunlock, funcionan avisando que el usuario ya concluyo el proceso de lectura o escritura disminuyendo las variables $writing$ y $writers$ o $reading$ según corresponda. Luego de disminuir la/las variables se lo comunica a todas las variables de condicion que estén esperando a través de $cond\_broadcast$.
+
+\begin{algorithm}[H]
+  \begin{algorithmic}[1]
+  \caption{Pseudocódigo del desbloqueador para lectura}
+  \label{algo:3-1}
+  \Procedure{runlock}{$ $}
+	\State $mutex\_lock(\&m)$
+
+	\State $reading$ $\leftarrow$ $reading - 1$
+	
+	\State $cond\_broadcast(\&turn)$
+
+	\State $mutex\_unlock(\&m)$
+
+	\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \begin{algorithmic}[1]
+  \caption{Pseudocódigo del desbloqueador para escritura}
+  \label{algo:3-1}
+  \Procedure{wunlock}{$ $}
+	\State $mutex\_lock(\&m)$
+
+	\State $writing$ $\leftarrow$ $writing - 1$
+	
+	\State $writers$ $\leftarrow$ $writers - 1$
+	
+	\State $cond\_broadcast(\&turn)$
+
+	\State $mutex\_unlock(\&m)$
+
+	\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Referencias}
+
+Como guía para desarrollar este trabajo utilizamos lo visto en la clase práctica y teórica sobre pthreads acompañado de los ejemplos y explicaciones desarrolladas en la página  del $LLNL$. Para consultas sobre $POSIX$ $threads$ recurrimos a Source Ware.
+
+\begin{itemize}
+
+\item \href{https://computing.llnl.gov/tutorials/pthreads/}{Tutorial del LLNL}
+
+\item \href{https://www.sourceware.org/pthreads-win32/manual/}{Source Ware}
+
+\end{itemize}
+
+% =========================================
+
+%Explicación de los tests desarrollados.
+%
+%Deberán implementar un test de la estructura que involucre la creación de varios threads y muestre el funcionamiento esperado.
+%
+%Los procesos leen un contador y lo aumentan en uno.
+%
+%p1 Leo - escribo
+%p2 Leo - escribo
+%p3 Leo - escribo
+%p4 Leo - escribo
+%p5 Leo - escribo
