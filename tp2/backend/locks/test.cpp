@@ -3,9 +3,11 @@
 #include <cassert>
 #include <iostream>
 
+#include <unistd.h>
+
 using namespace std;
 
-#define  CANT_THREADS  5
+#define  CANT_THREADS  10
 
 #define test(fn)                           \
     do {                                   \
@@ -24,32 +26,36 @@ class RWLockTester : public RWLock {
 };
 
 int variable_global = 0;
+RWLockTester lock;
 
-void *pTest(void *p_lock) {
-    RWLockTester lock = *((RWLockTester*) p_lock);
-    assert(not lock.isLocked());
+
+void *pTest(void*) {
 
     lock.rlock();
 
     assert(lock.isLocked());
-    assert(lock.readersLeft() == 1);
+    assert(lock.readersLeft() >= 1);
     cout << "Reading! "  << variable_global << endl;
 
     lock.runlock();
 
-    assert(not lock.isLocked());
-
     lock.wlock();
 
     assert(lock.isWriting());
-    assert(lock.writersLeft() == 1);
+    assert(lock.writersLeft() >= 1);
+
     variable_global++;
+
+    // Hago algo por 10 milisegundos
+    sleep(0.01);
+
     variable_global--;
+
+    assert(not variable_global);
+
     cout << "Writing! " << variable_global << endl;
 
     lock.wunlock();
-
-    assert(not lock.isLocked());
 
     return NULL;
 
@@ -89,25 +95,23 @@ int main() {
 
     test(test_basic);
 
-    cout << "done!" << endl;
+    cout << "Test Basico Terminado!" << endl;
 
 	// Test Multi Threads
 
-    RWLockTester lock;
-	variable_global = 0;
-	cout << "Empezamos! " << variable_global << endl;
+	cout << "Empezamos Test Multi Threads! La variable_global vale: " << variable_global << endl;
 
     pthread_t thread[CANT_THREADS];
     int tid;
 
     for (tid = 0; tid < CANT_THREADS; ++tid) {
-         pthread_create(&thread[tid], NULL, pTest, &lock);
+         pthread_create(&thread[tid], NULL, pTest, NULL);
     }
 
     for (tid = 0; tid < CANT_THREADS; ++tid)
          pthread_join(thread[tid], NULL);
 
-    cout << "Terminamos! " << variable_global << endl;
+    cout << "Terminamos Test Multi Threads! La variable_global vale: " << variable_global << endl;
 
 
     return 0;

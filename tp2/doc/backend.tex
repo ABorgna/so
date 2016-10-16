@@ -1,15 +1,12 @@
 \section{Servidor de backend}
 
-En esta sección se irán enumerando los cambios realizados sobre el juego original para para cumplir con los requisitos dados.
+En esta sección se irán enumerando los cambios realizados sobre el juego original para cumplir con los requisitos dados.
 
 Para permitir que múltiples clientes se conecten al backend de forma simultánea editamos el $main$ de $backend.cpp$ hicimos que no se cierre el socket del servidor al conectarse un usuario, sino que este se mantenga abierto para permitir que nuevos jugadores se conecten. Ahora cada vez que alguien se conecta se crea un nuevo $thread$ que ejecuta, al igual que en la versión mono, a $atendedor\_de\_jugador$.
 
 Como desición de diseñó preferimos modelar el tablero del juego a partir de una sola matriz $tablero$ en vez de un $tablero\_temporal$ y $tablero\_confirmado$. De esta manera se permite para una casilla tener el RESERVADO, definido como 0x01 en $Encabezado.h$, esto indica que un jugador escogió poner una carta sobre la casilla pero aún no cofirmo la jugada. Haciendo esto pudimos luego modelar facilmente la restricción de un jugador para escoger una casilla reservada.
 
-
-% Atendedor de Jugador recibe long en vez de int
-%  	atendedor_de_jugador(long socket_fd)
-
+Otro pequeño cambio fue que las variables $socketfd_cliente$ y $socket_size$ se cambiaron de $int$ a $long$ ya que el primero, a diferencia del segundo, es un tipo de datos que es representado con un tamaño distinto dependiendo el sistema operativo, lo cual puede generar problemas y confusiones al intentar acceder al espacio de memoria que este ocupa.
 
 Se agregó $tablero\_lock$ en $backend.cpp$, la variable local que utilizaremos para estar manejar las escrituras y lecturas del tablero, evitando condiciones de carrera y obteniendo un manejo sincronizado del tablero.
 
@@ -43,13 +40,3 @@ De esta manera se agregaron locks y unlocks donde fue necesario, mas especificam
 \end{itemize}
 
 \end{itemize}
-
-%El programa debe cumplir:
-%	-Permitir que todos los jugadores coloquen cartas en 
-%	casilleros distintos de forma simultánea.
-%	-Permitir que varios clientes consulten el estado del 	
-%	tablero de forma simultánea.
-%
-%De ser necesario, incluir explicacion en palabras del funcionamiento del servidor
-%
-%Explicar cualquier decision de diseño que hayan tomado.

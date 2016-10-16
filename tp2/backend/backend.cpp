@@ -47,7 +47,7 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-    // inicializar el, se accede como tablero[fila][columna]
+    // inicializar el tablero, se accede como tablero[fila][columna]
     tablero = vector<vector<char>>(alto, vector<char>(ancho, VACIO));
 
     long socketfd_cliente, socket_size;

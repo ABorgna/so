@@ -2,9 +2,11 @@
 
 \subsection{Pseudocodigo de los algoritmos}
 
-Los algoritmos descritos a continuación son parte de los métodos de la clase RWLock, la cual esta formada por un mutex $m$, una variable de condición $turn$ y tres int $reading$, $writing$ y $writers$.
+El objetivo del $RWLock$ es restringir el acceso a una variable (Un tablero en el caso del juego) de modo que cualquier cantidad de lectores pueda leer los datos simultaneamente pero solo puedan escribir de a uno por vez y cuando nadie este leyendo.
 
-Los algoritmos de bloqueo, rlock y wlock funcionan chequeando que las condiciones son aptas para realizar su accion (leer o escribir respectivamente) y luego indican que van a realizar dicha acción a traves de las variables $reading$ y $writing$. Estas variables indican cuantas personas estan leyendo o escribiendo, en el caso de $reading$ la cantidad puede ser un numero positivo o cero ya que no hay problema en que multiples personas lean una variable, por otra parte $writing$ solo puede valor 0 o 1 ya que no puede permitirse que multiples personas esten editando la misma variable porque generaría $race conditions$. La variable $writers$ indicará cuantas personas quieren escribir.
+Los algoritmos descritos a continuación son parte de los métodos de la clase RWLock, la cual esta formada por un mutex $m$, una variable de condición $turn$ y tres int $reading$, $writing$ y $writers$, los cuales se describen a continuación.
+
+Los algoritmos de bloqueo, rlock y wlock funcionan chequeando que las condiciones son aptas para realizar su acción (leer o escribir respectivamente) y luego indicando que van a realizar dicha acción a traves de las variables $reading$ y $writing$. Estas variables indican cuantas personas estan leyendo o escribiendo, en el caso de $reading$ la cantidad puede ser un numero positivo o cero ya que no hay problema en que multiples personas lean una variable, por otra parte $writing$ solo puede valor 0 o 1 ya que no puede permitirse que multiples personas esten editando la misma variable porque generaría $race conditions$. La variable $writers$ indicará cuantas personas quieren escribir.
 
 \begin{algorithm}[H]
   \begin{algorithmic}[1]
@@ -101,16 +103,12 @@ Como guía para desarrollar este trabajo utilizamos lo visto en la clase prácti
 
 \end{itemize}
 
-% =========================================
+\subsection{Explicación de los tests desarrollados}
 
-%Explicación de los tests desarrollados.
-%
-%Deberán implementar un test de la estructura que involucre la creación de varios threads y muestre el funcionamiento esperado.
-%
-%Los procesos leen un contador y lo aumentan en uno.
-%
-%p1 Leo - escribo
-%p2 Leo - escribo
-%p3 Leo - escribo
-%p4 Leo - escribo
-%p5 Leo - escribo
+Nuestro test pone a prueba el buen funcionamiento de la clase RWLock verificando que, al menos para lo testeado hasta el momento, no hay señales de condiciones de carrera, deadlocks o inanición. 
+
+Como test desarrollamos un programa que hace correr simultaneamente varios threads. Estos leen y escriben una variable local de tipo $int$, la cual inicia valiendo cero. Hay un RWLock global que comparten todos los threads, estos utilizan los métodos de bloqueo y desbloqueo para asegurar una buena sincronización (y exclusión mutua de ser necesaria) al escribir o leer.
+
+Cada thread empieza leyendo $variable\_global$, utilizando $rlock$ y $runlock$ al principio y final respectivamente. Luego hace un bloqueo de escritura $wlock$, aumenta en 1 a $variable\_global$ y luego la decrementa (También en 1), se imprime el resultado y se desbloquea con $wunlock$. Esto es para chequear que al escribir sobre la variable, solo lo hace un único thread, si esto se cumple, la impresión del valor de la variable deberia ser siempre $0$, si no fuera así entonces al menos dos procesos estuvieron accediendo simultaneamente a la variable.
+
+Se corrió el test con el RWLock y luego sin (Comentando las lineas relacionadas a bloqueos y desbloqueos). Y se confirmo que en el primer caso se imprimia siempre 0 como valor resultante y en el segundo no necesariamente, obteniendo todo tipo de valores. Esto verifica que no hay condiciones de carrera. El test siempre finaliza exitosamente con cada thread terminado correctamente por lo que tampoco se observan señales de deadlocks o inanición.
