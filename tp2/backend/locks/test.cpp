@@ -2,12 +2,12 @@
 
 #include <cassert>
 #include <iostream>
-
+#include <pthread.h>
 #include <unistd.h>
 
 using namespace std;
 
-#define  CANT_THREADS  10
+#define CANT_THREADS 2500
 
 #define test(fn)                           \
     do {                                   \
