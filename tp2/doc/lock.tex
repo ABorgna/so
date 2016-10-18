@@ -92,6 +92,7 @@ Los algoritmos de desbloqueo, runlock y wunlock, funcionan avisando que el usuar
 	\end{algorithmic}
 \end{algorithm}
 
+Como último detalle es importante mencionar que al haber muchos threads intentando escribir estos van a acumularse esperando en la variable de condición hasta ser despertados, esta situación puede ser problemática, ya que se va a ir despertando a cada thread (para que bloquee el mutex y continue con su ejecución) de a uno por vez y podría ocurrir, según como este implementado el scheduller que cierto thread se quede esperando, debido a que, por ejemplo, siempre pasan primero nuevos threads que van llegando, esto claramente generaría un problema de inanición. Para este trabajo vamos a asumir que dicho fenomeno no puede ocurrir debido a que tenemos un scheduller que ordena de alguna manera suficientemente justa los threads de tal manera que se forma una especie de cola que define un orden de llegada entre los mismos. Para evitar asumir esto pensamos en armar una cola con un mutex pero creemos que iria en contra de la idea del trabajo práctico y al consultarlo nos dijeron que no era necesario enfrentar este problema.
 
 \subsection{Referencias}
 
