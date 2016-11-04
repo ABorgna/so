@@ -12,7 +12,7 @@ using namespace std;
 
 bool cargar_int(const char* numero, unsigned int& n);
 
-void atendedor_de_jugador(long socket_fd);
+void atendedor_de_jugador(int* socket_fd);
 
 // mensajes recibidos por el server
 int recibir_nombre(int socket_fd, char* nombre);

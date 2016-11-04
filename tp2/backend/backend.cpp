@@ -6,6 +6,7 @@ using namespace std;
 
 // variables globales de la conexión
 int socket_servidor = -1;
+pthread_mutex_t prox_socket;
 
 // variables globales del juego
 vector<vector<char>> tablero;  // la carta puede ser el palo, VACIO o RESERVADO
@@ -13,7 +14,7 @@ vector<vector<char>> tablero;  // la carta puede ser el palo, VACIO o RESERVADO
 unsigned int ancho = -1;
 unsigned int alto = -1;
 
-RWLock tablero_lock;
+vector<vector<RWLock>> tablero_lock;  // la carta puede ser el palo, VACIO o RESERVADO
 
 bool cargar_int(const char* numero, unsigned int& n) {
     char* eptr;
@@ -49,8 +50,10 @@ int main(int argc, const char* argv[]) {
 
     // inicializar el tablero, se accede como tablero[fila][columna]
     tablero = vector<vector<char>>(alto, vector<char>(ancho, VACIO));
+    // idem en acceso para el lock de cada casillero
+    tablero_lock = vector<vector<RWLock>>(alto, vector<RWLock>(ancho, RWLock()));
 
-    long socketfd_cliente, socket_size;
+    int socket_size, socketfd_cliente;
     struct sockaddr_in local, remoto;
 
     // crear un socket de tipo INET con TCP (SOCK_STREAM)
@@ -81,7 +84,10 @@ int main(int argc, const char* argv[]) {
     // aceptar conexiones entrantes.
     socket_size = sizeof(remoto);
 
+    pthread_mutex_init(&prox_socket, NULL);
+
     while (true) {
+        pthread_mutex_lock(&prox_socket);
         if ((socketfd_cliente =
                  accept(socket_servidor, (struct sockaddr*)&remoto,
                         (socklen_t*)&socket_size)) == -1)
@@ -92,15 +98,18 @@ int main(int argc, const char* argv[]) {
             pthread_t tid;
             pthread_create(&tid, NULL,
                            (void* (*)(void*)) & atendedor_de_jugador,
-                           (void*)socketfd_cliente);
+                           (void*) &socketfd_cliente);
         }
     }
 
     return 0;
 }
 
-void atendedor_de_jugador(long socket_fd) {
+void atendedor_de_jugador(int* socket_fd_ptr) {
     // variables locales del jugador
+    int socket_fd = *socket_fd_ptr;
+    // launcher puede aceptar próxima conexión
+        pthread_mutex_unlock(&prox_socket);
     char nombre_jugador[21];
     list<Casillero>
         jugada_actual;  // lista de cartas aún no confirmadas del jugador
@@ -131,11 +140,12 @@ void atendedor_de_jugador(long socket_fd) {
 
             // ficha contiene la nueva carta a colocar
             // verificar si es una posición válida del tablero
-            tablero_lock.wlock();
+            tablero_lock[ficha.fila][ficha.columna].wlock();
             if (es_ficha_valida_en_jugada(ficha, jugada_actual)) {
                 tablero[ficha.fila][ficha.columna] = RESERVADO;
 
-                tablero_lock.wunlock();
+                tablero_lock[ficha.fila][ficha.columna].wunlock();
+
 
                 jugada_actual.push_back(ficha);
 
@@ -145,7 +155,7 @@ void atendedor_de_jugador(long socket_fd) {
                     terminar_servidor_de_jugador(socket_fd, jugada_actual);
                 }
             } else {
-                tablero_lock.wunlock();
+                tablero_lock[ficha.fila][ficha.columna].wunlock();
                 quitar_cartas(jugada_actual);
                 // ERROR
                 if (enviar_error(socket_fd) != 0) {
@@ -156,14 +166,16 @@ void atendedor_de_jugador(long socket_fd) {
         } else if (comando == MSG_CONFIRMO) {
             // las cartas acumuladas conforman una jugada completa, escribirlas
             // en el tablero y borrar las cartas temporales
-            tablero_lock.wlock();
+
             for (list<Casillero>::const_iterator casillero =
                      jugada_actual.begin();
                  casillero != jugada_actual.end(); casillero++) {
-                tablero[casillero->fila][casillero->columna] =
-                    casillero->contenido;
+                tablero_lock[casillero->fila][casillero->columna].wlock();
+                    tablero[casillero->fila][casillero->columna] =
+                        casillero->contenido;
+                tablero_lock[casillero->fila][casillero->columna].wunlock();
+
             }
-            tablero_lock.wunlock();
             jugada_actual.clear();
 
             if (enviar_ok(socket_fd) != 0) {
@@ -257,15 +269,16 @@ int enviar_tablero(int socket_fd) {
     int pos = 7;
 
     // Que no escriba nadie
-    tablero_lock.rlock();
     for (unsigned int fila = 0; fila < alto; ++fila) {
         for (unsigned int col = 0; col < ancho; ++col) {
-            char carta = tablero[fila][col];
+            tablero_lock[fila][col].rlock();
+                char carta = tablero[fila][col];
+            tablero_lock[fila][col].runlock();
+
             buf[pos] = carta == VACIO or carta == RESERVADO ? '-' : carta;
             pos++;
         }
     }
-    tablero_lock.runlock();
 
     buf[pos] = 0;  // end of buffer
 
@@ -297,21 +310,22 @@ void terminar_servidor_de_jugador(int socket_fd,
     cout << "Se interrumpió la comunicación con un cliente" << endl;
 
     close(socket_fd);
-
     quitar_cartas(jugada_actual);
 
-    exit(-1);
+    pthread_exit(&socket_fd);
+
 }
 
 void quitar_cartas(list<Casillero>& jugada_actual) {
-    tablero_lock.wlock();
 
     for (list<Casillero>::const_iterator casillero = jugada_actual.begin();
          casillero != jugada_actual.end(); casillero++) {
-        tablero[casillero->fila][casillero->columna] = VACIO;
+
+        tablero_lock[casillero->fila][casillero->columna].wlock();
+            tablero[casillero->fila][casillero->columna] = VACIO;
+        tablero_lock[casillero->fila][casillero->columna].wunlock();
     }
 
-    tablero_lock.wunlock();
 
     jugada_actual.clear();
 }
@@ -337,9 +351,8 @@ Casillero casillero_mas_distante_de(const Casillero& ficha,
 bool es_ficha_valida_en_jugada(const Casillero& ficha,
                                const list<Casillero>& jugada_actual) {
     // si está fuera del tablero, no es válida
-    if (ficha.fila > alto - 1 || ficha.columna > ancho - 1) {
+    if (ficha.fila > alto - 1 || ficha.columna > ancho - 1)
         return false;
-    }
 
     // si el casillero está ocupado, tampoco es válida
     // ya se lockeó el tablero antes de llamar a la función
