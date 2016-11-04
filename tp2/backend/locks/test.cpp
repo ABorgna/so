@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#include <semaphore.h>
+
 using namespace std;
 
 #define CANT_THREADS 2500
@@ -27,6 +29,22 @@ class RWLockTester : public RWLock {
 
 int variable_global = 0;
 RWLockTester lock;
+sem_t contador;
+
+void *lecturas_concurrentes(void*) {
+
+    lock.rlock();
+    std::cout << "Nuevo lector, cantidad total:" << lock.readersLeft() << std::endl;
+
+    if (lock.readersLeft() < CANT_THREADS) {
+        sem_wait(&contador);
+    } else {
+        assert(lock.readersLeft() == CANT_THREADS);
+        for (int i = 0; i< CANT_THREADS; ++i)
+            sem_post(&contador);
+    }
+    lock.runlock();
+}
 
 
 void *pTest(void*) {
@@ -112,6 +130,23 @@ int main() {
          pthread_join(thread[tid], NULL);
 
     cout << "Terminamos Test Multi Threads! La variable_global vale: " << variable_global << endl;
+
+    // Test lecturas concurrentes (esperan a que estén todos los threads leyendo para soltar el lock)
+
+    cout << "Empenzando test de lecturas concurrentes" << endl;
+
+    sem_init(&contador, 0, 0);
+
+    for (tid = 0; tid < CANT_THREADS; ++tid) {
+         pthread_create(&thread[tid], NULL, lecturas_concurrentes, NULL);
+    }
+
+    for (tid = 0; tid < CANT_THREADS; ++tid)
+         pthread_join(thread[tid], NULL);
+
+
+    cout << "Terminado test de lecturas concurrentes" << endl;
+
 
 
     return 0;
