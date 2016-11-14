@@ -32,7 +32,7 @@ TAG_NODE_LOOKUP_RESP = 26
 
 TAG_NODE_STORE_REQ = 27
 
-# Tamaño de mi tabla 
+# Tamaño de mi tabla
 K = 8
 
 def tag_to_string(tag):
@@ -124,23 +124,40 @@ class Node(object):
                 del self.__routing_table[node_max_hash]
                 self.__routing_table[node_hash] = node_rank
 
-    # Le pregunta a los nodos mínimos por el hash 
+    # Le pregunta a los nodos mínimos por el hash
     def __find_nodes(self, contact_nodes, thing_hash):
         queue = contact_nodes
         processed = set()
         nodes_min = {}
-
-	###################
-	# Completar
-	###################
+        ###################
+        # Completar
+        ###################
+        for c_node_hash, c_node_rank in queue:
+            self.__comm.send(data, source=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
+            nodes, files = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
+            for n_node in nodes:
+                if n_node not in processed:
+                    n_hash, n_rank = n_node
+                    nodes_min[n_hash] = n_rank
+                    queue.append(n_node)
+            processed.add((c_node_hash, c_node_rank))
+            queue.remove((c_node_hash, c_node_rank))
         return nodes_min
 
     # casi igual a find_node pero agrega los archivos necesarios al hacer join. Pueden hacerlo en un solo método
     def __find_nodes_join(self, contact_nodes):
         nodes_min = set()
-	################
-	# Completar
-	################
+    	###################
+    	# Completar
+    	###################
+	    for node_hash, node_rank in contact_nodes:
+            data = self.__hash, self.node_rank
+            self.__comm.send(data, source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
+            nodes, files = self.__comm.recv(source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
+            for file_hash, file_name in files.items():
+                self.__files[file_hash] = file_name
+            nodes_min.union(nodes)
+            ##contact_nodes.union(nodes) no estoy seguro si hay que preguntarles a estos también por nodos cercanos
         return nodes_min
 
     def __print_routing_table(self):
@@ -224,7 +241,7 @@ class Node(object):
 	########################
 	#     Completar
 	########################
- 
+
             # Envio el archivo a los nodos más cercanos
 
     def __handle_console_look_up(self, source, data):
