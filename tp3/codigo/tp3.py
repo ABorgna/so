@@ -150,14 +150,19 @@ class Node(object):
     	###################
     	# Completar
     	###################
-	    for node_hash, node_rank in contact_nodes:
-            data = self.__hash, self.node_rank
-            self.__comm.send(data, source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
-            nodes, files = self.__comm.recv(source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
-            for file_hash, file_name in files.items():
-                self.__files[file_hash] = file_name
-            nodes_min.union(nodes)
-            ##contact_nodes.union(nodes) no estoy seguro si hay que preguntarles a estos también por nodos cercanos
+        processed = set()
+        for node_hash, node_rank in contact_nodes:
+            if (node_hash, node_rank) not in processed:
+                data = self.__hash, self.node_rank
+                self.__comm.send(data, source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
+                nodes, files = self.__comm.recv(source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
+                for file_hash, file_name in files.items():
+                    self.__files[file_hash] = file_name
+                nodes_min.union(nodes)
+                ##agregar nodes a contact_nodes, no estoy seguro si hay que preguntarles a estos también por nodos cercanos
+                for node in nodes:
+                    contact_nodes.append(node)
+                processed.add((node_hash, node_rank))
         return nodes_min
 
     def __print_routing_table(self):
@@ -260,6 +265,17 @@ class Node(object):
 	########################
 	#     Completar
 	########################
+
+        hash_mins = self.__get_mins(nodes_min, file_hash)
+
+        for node_hash, node_rank in hash_mins:
+            self.__comm.send(file_hash, dest=node_rank, tag=TAG_NODE_LOOKUP_REQ)
+            file_name = self.__comm.recv(source=node_rank, tag=TAG_NODE_LOOKUP_RESP)
+            if hash_fn(file_name) == file_hash:
+                break
+
+        data = file_name
+        #------------------
         # Devuelvo el archivo.
         self.__comm.send(data, dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
 
