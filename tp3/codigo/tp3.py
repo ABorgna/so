@@ -266,6 +266,9 @@ class Node(object):
 	#     Completar
 	########################
 
+        if file_hash in self.__files.keys():
+            self.__comm.send(self.__files[file_hash], dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
+
         hash_mins = self.__get_mins(nodes_min, file_hash)
 
         for node_hash, node_rank in hash_mins:
