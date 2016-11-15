@@ -259,6 +259,13 @@ class Node(object):
 	########################
 	#     Completar
 	########################
+        # me quedo con los más cercanos
+        nodes_min = self.__get_mins(nodes_min, file_hash)
+
+        # les digo que guarden el archivo
+        for node in nodes_min:
+            self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ)
+
 
             # Envio el archivo a los nodos más cercanos
 
@@ -292,7 +299,7 @@ class Node(object):
             self.__comm.send(file_hash, dest=node_rank, tag=TAG_NODE_LOOKUP_REQ)
             # devuelven su .__files[file_hash] que corresponde al nombre
             file_name = self.__comm.recv(source=node_rank, tag=TAG_NODE_LOOKUP_RESP)
-
+            # si coinciden es porque node_rank no me devolvió fruta
             if hash_fn(file_name) == file_hash:
                 break
 
