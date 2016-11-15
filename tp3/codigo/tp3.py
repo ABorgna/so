@@ -128,41 +128,54 @@ class Node(object):
     def __find_nodes(self, contact_nodes, thing_hash):
         queue = contact_nodes
         processed = set()
-        nodes_min = {}
+        nodes_min = {} # devuelve dict hash→rank
         ###################
         # Completar
         ###################
+        data = thing_hash
         for c_node_hash, c_node_rank in queue:
+
+            # marco como vistos e inserto en los mínimos
+            processed.add((c_node_hash, c_node_rank))
+            nodes_min[c_node_hash] = c_node_rank
+
             self.__comm.send(data, source=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
             nodes, files = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
+
             for n_node in nodes:
-                if n_node not in processed:
-                    n_hash, n_rank = n_node
-                    nodes_min[n_hash] = n_rank
+                if n_node not in processed: # los que ya consultamos no se agregan
                     queue.append(n_node)
-            processed.add((c_node_hash, c_node_rank))
-            queue.remove((c_node_hash, c_node_rank))
+
         return nodes_min
 
     # casi igual a find_node pero agrega los archivos necesarios al hacer join. Pueden hacerlo en un solo método
     def __find_nodes_join(self, contact_nodes):
-        nodes_min = set()
+        nodes_min = set() # devuelve {(hash, rank)}
     	###################
     	# Completar
     	###################
         processed = set()
-        for node_hash, node_rank in contact_nodes:
-            if (node_hash, node_rank) not in processed:
+        queue = contact_nodes
+
+        for node_hash, node_rank in queue:
+                # marco como vistos e inserto en los mínimos
+                processed.add((node_hash, node_rank))
+                nodes_min.insert((node_hash, node_rank))
+
+                # node_rank modifica data cuando la recibe, copiamos cada vez:
                 data = self.__hash, self.node_rank
                 self.__comm.send(data, source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
                 nodes, files = self.__comm.recv(source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
+
+                # agrego los archivos que me pasaron
                 for file_hash, file_name in files.items():
                     self.__files[file_hash] = file_name
-                nodes_min.union(nodes)
-                ##agregar nodes a contact_nodes, no estoy seguro si hay que preguntarles a estos también por nodos cercanos
+
+                # nuevos nodos para consultar
                 for node in nodes:
-                    contact_nodes.append(node)
-                processed.add((node_hash, node_rank))
+                    if node not in processed:
+                        queue.append(node)
+
         return nodes_min
 
     def __print_routing_table(self):
@@ -266,14 +279,20 @@ class Node(object):
 	#     Completar
 	########################
 
+        # si lo tengo, lo mando sin consultar
         if file_hash in self.__files.keys():
             self.__comm.send(self.__files[file_hash], dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
+            return
 
+        # nodos a los que les voy a consultar por el hash
         hash_mins = self.__get_mins(nodes_min, file_hash)
 
         for node_hash, node_rank in hash_mins:
+
             self.__comm.send(file_hash, dest=node_rank, tag=TAG_NODE_LOOKUP_REQ)
+            # devuelven su .__files[file_hash] que corresponde al nombre
             file_name = self.__comm.recv(source=node_rank, tag=TAG_NODE_LOOKUP_RESP)
+
             if hash_fn(file_name) == file_hash:
                 break
 
