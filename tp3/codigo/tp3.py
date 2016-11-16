@@ -132,15 +132,17 @@ class Node(object):
         ###################
         # Completar
         ###################
+        processed.add((self.__hash, self.__rank))
         data = thing_hash
-        for c_node_hash, c_node_rank in queue:
+        for c_node in queue:
+            c_node_hash, c_node_rank = c_node  
 
             # marco como vistos e inserto en los mínimos
-            processed.add((c_node_hash, c_node_rank))
+            processed.add(c_node)
             nodes_min[c_node_hash] = c_node_rank
 
             self.__comm.send(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
-            nodes, files = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
+            nodes = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
 
             for n_node in nodes:
                 if n_node not in processed: # los que ya consultamos no se agregan
@@ -155,6 +157,7 @@ class Node(object):
     	# Completar
     	###################
         processed = set()
+        processed.add((self.__hash, self.__rank))
         queue = contact_nodes
 
         for node_hash, node_rank in queue:
