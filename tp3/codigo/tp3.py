@@ -139,7 +139,7 @@ class Node(object):
             processed.add((c_node_hash, c_node_rank))
             nodes_min[c_node_hash] = c_node_rank
 
-            self.__comm.send(data, source=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
+            self.__comm.send(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
             nodes, files = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
 
             for n_node in nodes:
@@ -160,11 +160,11 @@ class Node(object):
         for node_hash, node_rank in queue:
                 # marco como vistos e inserto en los mínimos
                 processed.add((node_hash, node_rank))
-                nodes_min.insert((node_hash, node_rank))
+                nodes_min.add((node_hash, node_rank))
 
                 # node_rank modifica data cuando la recibe, copiamos cada vez:
-                data = self.__hash, self.node_rank
-                self.__comm.send(data, source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
+                data = self.__hash, self.__rank
+                self.__comm.send(data, dest=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
                 nodes, files = self.__comm.recv(source=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
 
                 # agrego los archivos que me pasaron
