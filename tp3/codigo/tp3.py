@@ -266,8 +266,8 @@ class Node(object):
         nodes_min = self.__get_mins(nodes_min, file_hash)
 
         # les digo que guarden el archivo
-        for node in nodes_min:
-            self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ)
+        for (h, r) in nodes_min:
+            self.__comm.send(data, dest=r, tag=TAG_NODE_STORE_REQ)
 
 
             # Envio el archivo a los nodos más cercanos
@@ -303,7 +303,7 @@ class Node(object):
             # devuelven su .__files[file_hash] que corresponde al nombre
             file_name = self.__comm.recv(source=node_rank, tag=TAG_NODE_LOOKUP_RESP)
             # si coinciden es porque node_rank no me devolvió fruta
-            if hash_fn(file_name) == file_hash:
+            if file_name is not None and hash_fn(file_name) == file_hash:
                 break
 
         data = file_name
@@ -370,7 +370,7 @@ class Node(object):
         print("[D] [{:02d}] [NODE|LOOK-UP] Buscando archivo con hash '{}'".format(self.__rank, file_hash))
         print("[D] [{:02d}] [NODE|LOOK-UP] Tabla de archivos: {}".format(self.__rank, self.__files))
 
-        data = self.__files[file_hash]
+        data = self.__files[file_hash] if file_hash in self.__files else None
         self.__comm.send(data, dest=source, tag=TAG_NODE_LOOKUP_RESP)
 
     def __handle_node_store_req(self, data):
@@ -463,7 +463,10 @@ class Console(object):
     def __parse_command(self, command_string):
         tokens = [token.strip().lower() for token in command_string.split(" ") if token]
 
-        if tokens[0] in ["q", "quit"]:
+        if not tokens:
+            command = None
+            args = []
+        elif tokens[0] in ["q", "quit"]:
             command = "quit"
             args = []
         elif tokens[0] in ["j", "join"]:
