@@ -251,6 +251,7 @@ int main() {
 
             for (tid = 0; tid < CANT_THREADS/2; ++tid)
                  pthread_join(thread[tid], NULL);
+                 
         cout << endl << "ESCRITORES -> LECTOR -> ESCRITORES" << endl;
 
             for (tid = CANT_THREADS/2; tid < 3*CANT_THREADS/4; ++tid)
