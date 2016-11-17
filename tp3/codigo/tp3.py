@@ -279,8 +279,7 @@ class Node(object):
 
         # les digo que guarden el archivo
         for (h, r) in nodes_min:
-            if distance(file_hash, h) <= mi_distancia:
-                self.__comm.send(data, dest=r, tag=TAG_NODE_STORE_REQ)
+            self.__comm.send(data, dest=r, tag=TAG_NODE_STORE_REQ)
 
             # Envio el archivo a los nodos más cercanos
 
