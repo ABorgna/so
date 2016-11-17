@@ -135,7 +135,7 @@ class Node(object):
         processed.add((self.__hash, self.__rank))
         data = thing_hash
         for c_node in queue:
-            c_node_hash, c_node_rank = c_node  
+            c_node_hash, c_node_rank = c_node
 
             # marco como vistos e inserto en los mínimos
             processed.add(c_node)
@@ -262,13 +262,25 @@ class Node(object):
 	########################
 	#     Completar
 	########################
+
         # me quedo con los más cercanos
         nodes_min = self.__get_mins(nodes_min, file_hash)
 
+        # si yo estoy igual o más cerca, lo guardo también
+        mi_distancia = distance(file_hash, self.__hash)
+        distancia_min = distance(file_hash, nodes_min[0][0])
+
+        # si soy el de mínima distancia, solo yo lo guardo
+        if mi_distancia < distancia_min:
+            self.__files[file_hash] = file_name
+            return
+        elif mi_distancia == distancia_min:
+            self.__files[file_hash] = file_name
+
         # les digo que guarden el archivo
         for (h, r) in nodes_min:
-            self.__comm.send(data, dest=r, tag=TAG_NODE_STORE_REQ)
-
+            if distance(file_hash, h) <= mi_distancia:
+                self.__comm.send(data, dest=r, tag=TAG_NODE_STORE_REQ)
 
             # Envio el archivo a los nodos más cercanos
 
