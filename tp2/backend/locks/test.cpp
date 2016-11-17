@@ -44,6 +44,7 @@ void *lecturas_concurrentes(void*) {
             sem_post(&contador);
     }
     lock.runlock();
+    return nullptr;
 }
 
 // Test inanición 1 --------------------------------------------------------
@@ -58,11 +59,12 @@ void *lector_t1(void*) {
     // lo esperamos. No podemos usar vc o semáforo porque
     // la declaración de writer sucede durante el wlock.
     while (lock.writersLeft() == 0)
-        sleep(1);
+        usleep(100000);
 
     for (int i = 2; i < CANT_THREADS; ++i)
         sem_post(&leer);
     lock.runlock();
+    return nullptr;
 }
 
 void *lectores_t1(void*) {
@@ -71,12 +73,14 @@ void *lectores_t1(void*) {
     // El escritor ya terminó
     assert(lock.writersLeft() == 0);
     lock.runlock();
+    return nullptr;
 }
 
 void *escritor_t1(void*) {
     sem_wait(&escribir);
     lock.wlock();
     lock.wunlock();
+    return nullptr;
 }
 
 // Test inanición 2 --------------------------------------------------------
@@ -88,50 +92,52 @@ void *escritor_t1(void*) {
 void *lector(void*) {
     lock.rlock();
     std::cout << "R" << std::endl;
-    sleep(0.5);
+    usleep(50000);
     lock.runlock();
+    return nullptr;
 }
 
 void *escritor(void*) {
     lock.wlock();
     std::cout << "W" << std::endl;
-    sleep(0.5);
+    usleep(50000);
     lock.wunlock();
+    return nullptr;
 }
 
 
 // Test multithread --------------------------------------------------------
-void *pTest(void*) {
+void *pTest(void* tidP) {
+    int tid = (long) tidP;
 
     lock.rlock();
 
         assert(lock.isLocked());
         assert(lock.readersLeft() >= 1);
-        cout << "Reading! "  << variable_global << endl;
+        cout << tid << " - Reading! "  << variable_global << endl;
 
     lock.runlock();
 
-    std::cout << "SALI" << std::endl;
+    std::cout << tid << " - SALI" << std::endl;
     lock.wlock();
 
-        assert(lock.isWriting());
-        assert(lock.writersLeft() >= 1);
+        //assert(lock.isWriting());
+        //assert(lock.writersLeft() >= 1);
+
+        cout << tid << " - Writing! " << variable_global + 1 << endl;
 
         variable_global++;
 
         // Hago algo por 10 milisegundos
-        sleep(0.01);
+        usleep(10000);
 
-        variable_global--;
+        //variable_global--;
 
-        assert(not variable_global);
-
-        cout << "Writing! " << variable_global << endl;
+        //assert(not variable_global);
 
     lock.wunlock();
 
-    return NULL;
-
+    return nullptr;
 }
 
 
@@ -180,7 +186,7 @@ int main() {
         int tid;
 
         for (tid = 0; tid < CANT_THREADS; ++tid)
-             pthread_create(&thread[tid], NULL, pTest, NULL);
+             pthread_create(&thread[tid], NULL, pTest, (void*)(long)tid);
 
         for (tid = 0; tid < CANT_THREADS; ++tid)
              pthread_join(thread[tid], NULL);
