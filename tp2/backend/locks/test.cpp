@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#define CANT_THREADS 2500
+#define CANT_THREADS 60
 
 #define test(fn)                           \
     do {                                   \
@@ -29,7 +29,7 @@ class RWLockTester : public RWLock {
 
 int variable_global = 0;
 RWLockTester lock;
-sem_t contador;
+sem_t contador, escribir, leer;
 
 void *lecturas_concurrentes(void*) {
 
@@ -46,32 +46,87 @@ void *lecturas_concurrentes(void*) {
     lock.runlock();
 }
 
+// Test inanición 1 --------------------------------------------------------
+// lector llega, libera escritor para que se declare writer y
+// antes de terminar también larga la tanda de lectores (que deben esperar)
+// de lo contrario podrían generarle inanición al escritor
+void *lector_t1(void*) {
+    lock.rlock();
+    sem_post(&escribir);
+    // Escritor todavía no puede tomar el lock (no lo solté)
+    // pero sí declararse como writer
+    // lo esperamos. No podemos usar vc o semáforo porque
+    // la declaración de writer sucede durante el wlock.
+    while (lock.writersLeft() == 0)
+        sleep(1);
 
+    for (int i = 2; i < CANT_THREADS; ++i)
+        sem_post(&leer);
+    lock.runlock();
+}
+
+void *lectores_t1(void*) {
+    sem_wait(&leer);
+    lock.rlock();
+    // El escritor ya terminó
+    assert(lock.writersLeft() == 0);
+    lock.runlock();
+}
+
+void *escritor_t1(void*) {
+    sem_wait(&escribir);
+    lock.wlock();
+    lock.wunlock();
+}
+
+// Test inanición 2 --------------------------------------------------------
+// Queremos ver el orden en que llegan llamados del tipo:
+// tanda de lectores - escritor - tanda de lectores
+// ó tanda de escritores - lector - tanda de escritores
+// Queremos ver que ni el escritor ni el lector quedan últimos siempre
+
+void *lector(void*) {
+    lock.rlock();
+    std::cout << "R" << std::endl;
+    sleep(0.5);
+    lock.runlock();
+}
+
+void *escritor(void*) {
+    lock.wlock();
+    std::cout << "W" << std::endl;
+    sleep(0.5);
+    lock.wunlock();
+}
+
+
+// Test multithread --------------------------------------------------------
 void *pTest(void*) {
 
     lock.rlock();
 
-    assert(lock.isLocked());
-    assert(lock.readersLeft() >= 1);
-    cout << "Reading! "  << variable_global << endl;
+        assert(lock.isLocked());
+        assert(lock.readersLeft() >= 1);
+        cout << "Reading! "  << variable_global << endl;
 
     lock.runlock();
 
+    std::cout << "SALI" << std::endl;
     lock.wlock();
 
-    assert(lock.isWriting());
-    assert(lock.writersLeft() >= 1);
+        assert(lock.isWriting());
+        assert(lock.writersLeft() >= 1);
 
-    variable_global++;
+        variable_global++;
 
-    // Hago algo por 10 milisegundos
-    sleep(0.01);
+        // Hago algo por 10 milisegundos
+        sleep(0.01);
 
-    variable_global--;
+        variable_global--;
 
-    assert(not variable_global);
+        assert(not variable_global);
 
-    cout << "Writing! " << variable_global << endl;
+        cout << "Writing! " << variable_global << endl;
 
     lock.wunlock();
 
@@ -79,6 +134,8 @@ void *pTest(void*) {
 
 }
 
+
+// Test básico -------------------------------------------------------------
 void test_basic() {
     RWLockTester lock;
 
@@ -111,43 +168,103 @@ int main() {
 
     // Test Basico
 
-    test(test_basic);
+        test(test_basic);
 
-    cout << "Test Basico Terminado!" << endl;
+        cout << "Test Basico Terminado!" << endl;
 
 	// Test Multi Threads
+    {
+    	cout << "Empezamos Test Multi Threads! La variable_global vale: " << variable_global << endl;
 
-	cout << "Empezamos Test Multi Threads! La variable_global vale: " << variable_global << endl;
+        pthread_t thread[CANT_THREADS];
+        int tid;
 
-    pthread_t thread[CANT_THREADS];
-    int tid;
+        for (tid = 0; tid < CANT_THREADS; ++tid)
+             pthread_create(&thread[tid], NULL, pTest, NULL);
 
-    for (tid = 0; tid < CANT_THREADS; ++tid) {
-         pthread_create(&thread[tid], NULL, pTest, NULL);
+        for (tid = 0; tid < CANT_THREADS; ++tid)
+             pthread_join(thread[tid], NULL);
+
+        cout << "Terminamos Test Multi Threads! La variable_global vale: " << variable_global << endl;
     }
-
-    for (tid = 0; tid < CANT_THREADS; ++tid)
-         pthread_join(thread[tid], NULL);
-
-    cout << "Terminamos Test Multi Threads! La variable_global vale: " << variable_global << endl;
 
     // Test lecturas concurrentes (esperan a que estén todos los threads leyendo para soltar el lock)
 
-    cout << "Empenzando test de lecturas concurrentes" << endl;
+    {
+        cout << "Empezando test de lecturas concurrentes" << endl;
 
-    sem_init(&contador, 0, 0);
+        pthread_t thread[CANT_THREADS];
+        int tid;
 
-    for (tid = 0; tid < CANT_THREADS; ++tid) {
-         pthread_create(&thread[tid], NULL, lecturas_concurrentes, NULL);
+        sem_init(&contador, 0, 0);
+
+        for (tid = 0; tid < CANT_THREADS; ++tid)
+             pthread_create(&thread[tid], NULL, lecturas_concurrentes, NULL);
+
+        for (tid = 0; tid < CANT_THREADS; ++tid)
+             pthread_join(thread[tid], NULL);
+
+
+        cout << "Terminado test de lecturas concurrentes" << endl;
     }
 
-    for (tid = 0; tid < CANT_THREADS; ++tid)
-         pthread_join(thread[tid], NULL);
+    // Tests de inanición
 
+        std::cout << "Empezando test de inanición (lectores a escritores) ---------------" << std::endl;
+    {
+        pthread_t thread[CANT_THREADS];
+        int tid;
 
-    cout << "Terminado test de lecturas concurrentes" << endl;
+        sem_init(&leer, 0, 0);
+        sem_init(&escribir, 0, 0);
 
+        pthread_create(&thread[0], NULL, lector_t1, NULL);
+        pthread_create(&thread[1], NULL, escritor_t1, NULL);
 
+        // estos deberían esperar al escritor (ver funciones de cada thread)
 
+        for (tid = 2; tid < CANT_THREADS; ++tid)
+            pthread_create(&thread[tid], NULL, lectores_t1, NULL);
+
+        for (tid = 0; tid < CANT_THREADS; ++tid)
+             pthread_join(thread[tid], NULL);
+
+        std::cout << "Terminado test de inanición (lectores a escritores)" << std::endl;
+    }
+    // Test de inanición en general, no assertea pero queremos ver el orden
+    // en que ejecutan los llamados
+    {
+        std::cout << "Empezando test de inanición gral ---------------" << std::endl;
+
+        pthread_t thread[CANT_THREADS];
+        int tid;
+
+        std::cout << "LECTORES -> ESCRITOR -> LECTORES" << std::endl;
+
+            for (tid = 0; tid < CANT_THREADS/4; ++tid)
+                pthread_create(&thread[tid], NULL, lector, NULL);
+
+            pthread_create(&thread[CANT_THREADS/4], NULL, escritor, NULL);
+
+            for (tid = CANT_THREADS/4 + 1; tid < CANT_THREADS/2; ++tid)
+                pthread_create(&thread[tid], NULL, lector, NULL);
+
+            for (tid = 0; tid < CANT_THREADS/2; ++tid)
+                 pthread_join(thread[tid], NULL);
+        cout << endl << "ESCRITORES -> LECTOR -> ESCRITORES" << endl;
+
+            for (tid = CANT_THREADS/2; tid < 3*CANT_THREADS/4; ++tid)
+                pthread_create(&thread[tid], NULL, escritor, NULL);
+
+            pthread_create(&thread[3*CANT_THREADS/4], NULL, lector, NULL);
+
+            for (tid = 3*CANT_THREADS/4 + 1; tid < CANT_THREADS; ++tid)
+                pthread_create(&thread[tid], NULL, escritor, NULL);
+
+            for (tid = CANT_THREADS/2; tid < CANT_THREADS; ++tid)
+                 pthread_join(thread[tid], NULL);
+
+        std::cout << "Terminado test de inanición gral" << std::endl;
+    }
     return 0;
 }
