@@ -180,7 +180,7 @@ class Node(object):
             listos = [(request, rank) for request, rank in recv_queue if request.test()]
             for request, rank in listos:
                     recv_queue.remove((request, rank))
-                    req = self.__comm.irecv(dest=rank, tag=TAG_NODE_FIND_NODES_RESP)
+                    req = self.__comm.irecv(None, rank, tag=TAG_NODE_FIND_NODES_RESP)
                     done_queue.append(req)
 
             listos = [request for request in done_queue if request.test()]
@@ -240,20 +240,20 @@ class Node(object):
             for c_node in listos:
                 processed.add(c_node)
                 send_queue.remove(c_node)
+                c_node_hash, c_node_rank = c_node
                 nodes_min.add((c_node_hash, c_node_rank))
 
-                c_node_hash, c_node_rank = c_node
 
                 # node_rank modifica data cuando la recibe, copiamos cada vez:
                 data = self.__hash, self.__rank
 
-                req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
+                req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
                 recv_queue.append((req, c_node_rank))
 
             listos = [(request, rank) for request, rank in recv_queue if request.test()]
             for request, rank in listos:
                     recv_queue.remove((request, rank))
-                    req = self.__comm.irecv(dest=rank, tag=TAG_NODE_FIND_NODES_RESP)
+                    req = self.__comm.irecv(None, rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
                     done_queue.append(req)
 
             listos = [request for request in done_queue if request.test()]
