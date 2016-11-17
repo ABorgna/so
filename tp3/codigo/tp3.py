@@ -150,6 +150,49 @@ class Node(object):
 
         return nodes_min
 
+    # versión no-bloqueante:
+    def __ifind_nodes(self, contact_nodes, thing_hash):
+        send_queue = contact_nodes
+        processed = set()
+        nodes_min = {} # devuelve dict hash→rank
+        ###################
+        # Completar
+        ###################
+        recv_queue = []
+        done_queue = []
+
+        processed.add((self.__hash, self.__rank))
+        data = thing_hash
+
+        while len(send_queue) or len(recv_queue) or len(done_queue):
+
+            listos = [c_node for c_node in send_queue] # copio, así los puedo borrar de c_node al iterar
+            for c_node in listos:
+                processed.add(c_node)
+                send_queue.remove(c_node)
+
+                c_node_hash, c_node_rank = c_node
+                nodes_min[c_node_hash] = c_node_rank
+
+                req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
+                recv_queue.append((req, c_node_rank))
+
+            listos = [(request, rank) for request, rank in recv_queue if request.test()]
+            for request, rank in listos:
+                    recv_queue.remove((request, rank))
+                    req = self.__comm.irecv(dest=rank, tag=TAG_NODE_FIND_NODES_RESP)
+                    done_queue.append(req)
+
+            listos = [request for request in done_queue if request.test()]
+            for request in listos:
+                    done_queue.remove(request)
+                    nodes = request.wait()
+                    for n_node in nodes:
+                        if n_node not in processed:
+                            send_queue.append(n_node)
+
+        return nodes_min
+
     # casi igual a find_node pero agrega los archivos necesarios al hacer join. Pueden hacerlo en un solo método
     def __find_nodes_join(self, contact_nodes):
         nodes_min = set() # devuelve {(hash, rank)}
@@ -178,6 +221,52 @@ class Node(object):
                 for node in nodes:
                     if node not in processed:
                         queue.append(node)
+
+        return nodes_min
+
+    # versión no-bloqueante:
+    def __ifind_nodes_join(self, contact_nodes):
+        send_queue = contact_nodes
+        nodes_min = set() # devuelve {(hash, rank)}
+        processed = set()
+        recv_queue = []
+        done_queue = []
+
+        processed.add((self.__hash, self.__rank))
+
+        while len(send_queue) or len(recv_queue) or len(done_queue):
+
+            listos = [c_node for c_node in send_queue] # copio, así los puedo borrar de c_node al iterar
+            for c_node in listos:
+                processed.add(c_node)
+                send_queue.remove(c_node)
+                nodes_min.add((c_node_hash, c_node_rank))
+
+                c_node_hash, c_node_rank = c_node
+
+                # node_rank modifica data cuando la recibe, copiamos cada vez:
+                data = self.__hash, self.__rank
+
+                req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
+                recv_queue.append((req, c_node_rank))
+
+            listos = [(request, rank) for request, rank in recv_queue if request.test()]
+            for request, rank in listos:
+                    recv_queue.remove((request, rank))
+                    req = self.__comm.irecv(dest=rank, tag=TAG_NODE_FIND_NODES_RESP)
+                    done_queue.append(req)
+
+            listos = [request for request in done_queue if request.test()]
+            for request in listos:
+                    done_queue.remove(request)
+                    nodes, files = request.wait()
+
+                    for file_hash, file_name in files.items():
+                        self.__files[file_hash] = file_name
+
+                    for n_node in nodes:
+                        if n_node not in processed:
+                            send_queue.append(n_node)
 
         return nodes_min
 
