@@ -50,7 +50,7 @@ void RWLock::runlock() {
     reading--;
 
     // Avisarle a todos los writers que estén esperando
-    pthread_cond_signal(&turn);
+    pthread_cond_broadcast(&turn);
     pthread_mutex_unlock(&m);
 }
 

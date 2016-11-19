@@ -118,7 +118,6 @@ void *pTest(void* tidP) {
 
     lock.runlock();
 
-    std::cout << tid << " - SALI" << std::endl;
     lock.wlock();
 
         //assert(lock.isWriting());
