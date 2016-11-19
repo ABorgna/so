@@ -56,6 +56,8 @@ Se puede apreciar que se da prioridad a la escritura dado que, si en algún mome
 
 Los algoritmos de desbloqueo, runlock y wunlock, funcionan avisando que el usuario ya concluyó el proceso de lectura o escritura disminuyendo las variables $writing$ y $writers$ o $reading$ según corresponda. Luego de disminuir la/las variables se lo comunica a todas las variables de condición que estén esperando a través de $cond\_broadcast$.
 
+Si bien en el caso de runlock parecería alcanzar con un $signal$ dado que solamente despertaremos un único writer (los readers no se duermen mientras haya otros readers), al estar compartida por varios predicados (i.e la existencia de writers o writing/reading) podría despertar algún thread dormido en $while(writers)$ cuando solamente se actualiza la variable reading y por lo tanto se volverá a bloquear tras evaluar la guarda quedando el sistema en deadlock. Para que esto no suceda, largamos un $broadcast$, de modo que si bien los threads dormidos en la consulta de $writers$ se despertarán para volver a hacer $cond\_wait$, aquellos que no se van a bloquear nuevamente, los  escritores que están preguntando por $reading$, sí tomarán el lock cuando el último lector termine.
+
 \begin{algorithm}[H]
   \begin{algorithmic}[1]
   \caption{Pseudocódigo del desbloqueador para lectura}
@@ -115,3 +117,9 @@ Como test desarrollamos un programa que hace correr simultáneamente varios thre
 Cada thread empieza leyendo $variable\_global$, utilizando $rlock$ y $runlock$ al principio y final respectivamente. Luego hace un bloqueo de escritura $wlock$, aumenta en 1 a $variable\_global$ y luego la decrementa (también en 1), se imprime el resultado y se desbloquea con $wunlock$. Esto es para chequear que al escribir sobre la variable, solo lo hace un único thread, si esto se cumple, la impresión del valor de la variable debería ser siempre $0$, si no fuera así entonces al menos dos procesos estuvieron accediendo simultáneamente a la variable.
 
 Se corrió el test con el RWLock y luego sin (comentando las lineas relacionadas a bloqueos y desbloqueos). Y se confirmo que en el primer caso se imprimía siempre 0 como valor resultante y en el segundo no necesariamente, obteniendo todo tipo de valores. Esto verifica que no hay condiciones de carrera. El test siempre finaliza exitosamente con cada thread terminado correctamente por lo que tampoco se observan señales de deadlocks o inanición.
+
+Para comprobar, además, que las lecturas pueden realizarse de manera concurrente, realizamos un test en el cual una tanda de $N$ threads queda en $wait$ sobre un semáforo dentro de la sección crítica del rlock hasta que $reading = N$. Esto verifica que realmente puedan coexistir $N$ lectores con el lock tomado.
+
+Otro test que implementamos demuestra que, si un escritor se declara como tal pero no pudiendo conseguir el lock porque hay lectores todavía, la llegada de una nueva tanda de lectores no lo afectará cuando termine la primer tanda. Es decir, con esto mostramos que efectivamente los lectores esperan su turno frente a escritores emph{declarados}, lo que se conoce como \emph{Write-preferring RW Locks}\footnote{https://en.wikipedia.org/wiki/Readers\%E2\%80\%93writer\_lock\#Priority\_policies}.
+
+Por último, queremos tener algún tipo de seguridad de que no se produce inanición de lectores a escritores o escritores a lectores a nivel general. Para esto, hacemos llamados secuenciales de a \emph{batchs} del tipo: Tanda de lectores 1 $\rightarrow$ Escritor $\rightarrow$ Tanda de lectores 2, ó Tanda de escritores 1 $\rightarrow$ Lector $\rightarrow$ Tanda de escritores 2. La finalidad de esto es ver que no suceda que \emph{siempre} queden el escritor o el lectores (en casos respectivos) a lo último.

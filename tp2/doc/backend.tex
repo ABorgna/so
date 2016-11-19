@@ -6,9 +6,9 @@ Para permitir que múltiples clientes se conecten al backend de forma simultáne
 
 Como decisión de diseñó preferimos modelar el tablero del juego a partir de una sola matriz $tablero$ en vez de un $tablero\_temporal$ y $tablero\_confirmado$. De esta manera se permite para una casilla tener el RESERVADO, definido como 0x01 en $Encabezado.h$, esto indica que un jugador escogió poner una carta sobre la casilla pero aún no confirmó la jugada. Haciendo esto pudimos luego modelar fácilmente la restricción de un jugador para escoger una casilla reservada.
 
-Otro pequeño cambio fue que las variables $socketfd\_cliente$ y $socket\_size$ se cambiaron de $int$ a $long$ ya que el primero es un tipo de datos de 32 bits pero por lo que al castearlo a un puntero \textit{void} (de 64b) podía llegar a generar problemas.
+Otro pequeño cambio fue que la variable $socketfd\_cliente$ se pasa al $atendedor\_de\_jugador$ con un puntero (al ser un thread, tiene acceso a su memoria) para inmediatamente después ser copiada a una variable local propia del jugador y luego liberar un mútex que permita a \emph{launcher} seguir pisando la variable. 
 
-Se agregó $tablero\_lock$ en $backend.cpp$, la variable local que utilizaremos para coordinar las escrituras y lecturas del tablero, evitando condiciones de carrera y obteniendo un manejo sincronizado del tablero.
+Se agregó $tablero\_lock$ en $backend.cpp$, la variable local que utilizaremos para coordinar las escrituras y lecturas del tablero, evitando condiciones de carrera y obteniendo un manejo sincronizado del tablero. Se trata de una matriz de $RWLock$, con un \emph{lock} por casillero.
 
 De esta manera se agregaron locks y unlocks donde fue necesario, más específicamente en los siguientes métodos
 
@@ -17,7 +17,7 @@ De esta manera se agregaron locks y unlocks donde fue necesario, más específic
 \item $\mathbf{atendedor\_de\_jugador}:$
 
 \begin{itemize}
-\item Se bloquea para escritura. Así agrega una nueva ficha a una jugada tras haber tomado el lock y llamado a $es\_ficha\_valida\_en\_jugada$ sin soltarlo, de modo que nadie pudo haber ocupado el casillero elegido entre que fue leído (para corroborar que el movimiento fuera válido) y reservado por el jugador. Por eso que no podemos leer primero el tablero con lock de lectura y luego otro lock escribir, envolviendo ambas en un único lock de escritura.
+\item Se bloquea para escritura el casillero de la jugada. Así agrega una nueva ficha a una jugada tras haber tomado el lock y llamado a $es\_ficha\_valida\_en\_jugada$ sin soltarlo, de modo que nadie pudo haber ocupado el casillero elegido entre que fue leído (para corroborar que el movimiento fuera válido) y reservado por el jugador. Por eso que no podemos leer primero el tablero con lock de lectura y luego otro lock escribir, envolviendo ambas en un único lock de escritura.
 
 \item Se bloquea para escritura, así puede escribir sobre el tablero la jugada confirmada.
 
@@ -40,3 +40,5 @@ De esta manera se agregaron locks y unlocks donde fue necesario, más específic
 \end{itemize}
 
 \end{itemize}
+
+Una decisión que no sucedía en el contexto de backend $mono$ es la de determinar qué hacer con el tablero y la conexión con el socket de servidor cuando todos los jugadores actuales se desconectan. Por un lado se podría reiniciar el tablero, limpiando todos los casilleros, o se podría cerrar definitivamente la conexión. Pero, entendiendo que en el apartado de \emph{finalización} del enunciado nos indicaron: 'Cuando una conexión del servidor de frontend se pierde o se cierra, [...], el sistema debe garantizar que las jugadas completadas se conservan en el tablero, [...].' consideramos que es necesario cumplir este invariante aún cuando se cierra la última conexión de un jugador activo, por lo tanto no se cierra el socket de servidor y se dejan las jugadas en tablero.
