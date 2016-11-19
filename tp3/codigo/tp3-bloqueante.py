@@ -173,7 +173,7 @@ class Node(object):
                 processed.add((node_hash, node_rank))
                 distancia = distance(node_hash, self.__hash)
                 nodes_min.add((node_hash, node_rank, distancia))
-                
+
                 # node_rank modifica data cuando la recibe, copiamos cada vez:
                 data = self.__hash, self.__rank
                 self.__comm.send(data, dest=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
@@ -289,7 +289,11 @@ class Node(object):
 
         # si yo estoy igual o más cerca, lo guardo también
         mi_distancia = distance(file_hash, self.__hash)
-        distancia_min = distance(file_hash, nodes_min[0][0])
+
+        if len(nodes_min) > 0:
+            distancia_min = distance(file_hash, nodes_min[0][0])
+        else:
+            distancia_min = sys.maxint
 
         # si soy el de mínima distancia, solo yo lo guardo
         if mi_distancia < distancia_min:

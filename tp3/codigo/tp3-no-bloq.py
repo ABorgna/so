@@ -328,7 +328,11 @@ class Node(object):
 
         # si yo estoy igual o más cerca, lo guardo también
         mi_distancia = distance(file_hash, self.__hash)
-        distancia_min = distance(file_hash, nodes_min[0][0])
+
+        if len(nodes_min) > 0:
+            distancia_min = distance(file_hash, nodes_min[0][0])
+        else:
+            distancia_min = sys.maxint
 
         # si soy el de mínima distancia, solo yo lo guardo
         if mi_distancia < distancia_min:
