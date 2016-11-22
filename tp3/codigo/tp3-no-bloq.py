@@ -131,47 +131,50 @@ class Node(object):
     # Hace la pregunta de forma recursiva (a los nodos de mínima distancia
     # que se le pasan y a que van siendo mínima de los que obtiene de consultarle a cada uno
     def __find_nodes(self, contact_nodes, thing_hash):
-        send_queue = contact_nodes
+        print("['{}'] contact_nodes: '{}' ").format(self.__rank, contact_nodes)
         processed = set()
         nodes_min = {}
 
 	###################
 	# Código nuestro
 	###################
+    # recibir (si hay) y entonces
+        send_queue = []
         recv_queue = []
-        done_queue = []
 
         processed.add((self.__hash, self.__rank))
         data = thing_hash
 
-        while len(send_queue) or len(recv_queue) or len(done_queue):
+        contact_nodes = [node for node in contact_nodes if node[1] != self.__rank]
 
-            listos = [c_node for c_node in send_queue] # copio, así los puedo borrar de c_node al iterar
-            for c_node in listos:
-                processed.add(c_node)
-                send_queue.remove(c_node)
+        # proceso los iniciales
+        for c_node_hash, c_node_rank in contact_nodes:
+            processed.add((c_node_hash, c_node_rank))
+            nodes_min[c_node_hash] = c_node_rank
+            req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
+            recv_queue.append((req, c_node_rank))
 
-                c_node_hash, c_node_rank = c_node
+        while len(send_queue) or len(recv_queue):
+
+            # enviamos lo que haya por enviar
+            for c_node_hash, c_node_rank in send_queue:
+                processed.add((c_node_hash, c_node_rank))
                 nodes_min[c_node_hash] = c_node_rank
-
                 req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
-                recv_queue.append((req, c_node_rank))
+                recv_queue.append(c_node_rank)
 
-            listos = [(request, rank) for request, rank in recv_queue if request.test()]
-            for request, rank in listos:
-                    recv_queue.remove((request, rank))
-                    req = self.__comm.irecv(None, rank, tag=TAG_NODE_FIND_NODES_RESP)
-                    done_queue.append(req)
+            # ya le envié a todos los que podía, no puedo seguir haciendo nada hasta que me sigan mandando
+            status = MPI.Status()
+            nodes = self.__comm.recv(source=MPI.ANY_SOURCE, tag=TAG_NODE_FIND_NODES_RESP, status=status)
+            source = status.Get_source()
+            recv_queue.remove(source)
 
-            listos = [request for request in done_queue if request.test()]
-            for request in listos:
-                    done_queue.remove(request)
-                    nodes = request.wait()
-                    for n_node in nodes:
-                        if n_node not in processed:
-                            send_queue.append(n_node)
+            # me quedo con los mínimos
+            nodes = self.__get_mins(nodes, thing_hash)
 
-        return nodes_min
+            for n_node in nodes:
+                if n_node not in processed:
+                    send_queue.append(n_node)
 
         return nodes_min
 
@@ -180,51 +183,57 @@ class Node(object):
     # que le correspondería tener a él
     def __find_nodes_join(self, contact_nodes):
         nodes_min = set()
+        print("['{}'] contact_nodes @ JOIN: '{}' ").format(self.__rank, contact_nodes)
+
 
 	################
 	# Código nuestro
 	################
         processed = set()
-        send_queue = contact_nodes
+
+        send_queue = []
         recv_queue = []
-        done_queue = []
 
-        processed.add((self.__hash, self.__rank))
+        processed.add(self.__rank)
+        contact_nodes = [node for node in contact_nodes if node[1] != self.__rank]
+        # proceso los iniciales
+        for c_node_hash, c_node_rank in contact_nodes:
+            processed.add(c_node_rank)
+            distancia = distance(c_node_hash, self.__hash)
+            nodes_min.add((c_node_hash, c_node_rank, distancia))
 
-        while len(send_queue) or len(recv_queue) or len(done_queue):
+            # node_rank modifica data cuando la recibe, copiamos cada vez:
+            data = self.__hash, self.__rank
+            req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
+            recv_queue.append(c_node_rank)
 
-            listos = [c_node for c_node in send_queue] # copio, así los puedo borrar de c_node al iterar
-            for c_node in listos:
-                processed.add(c_node)
-                send_queue.remove(c_node)
+        while len(send_queue) or len(recv_queue):
 
-                c_node_hash, c_node_rank = c_node
-                distancia = distance(c_node_hash, self.__hash)
+            # enviamos lo que haya por enviar
+            for c_node_hash, c_node_rank in send_queue:
+                processed.add(c_node_rank)
                 nodes_min.add((c_node_hash, c_node_rank, distancia))
 
                 # node_rank modifica data cuando la recibe, copiamos cada vez:
                 data = self.__hash, self.__rank
 
                 req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
-                recv_queue.append((req, c_node_rank))
+                recv_queue.append(c_node_rank)
 
-            listos = [(request, rank) for request, rank in recv_queue if request.test()]
-            for request, rank in listos:
-                    recv_queue.remove((request, rank))
-                    req = self.__comm.irecv(None, rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
-                    done_queue.append(req)
+            send_queue = []
+            # ya le envié a todos los que podía, no puedo seguir haciendo nada hasta que me sigan mandando
+            status = MPI.Status()
+            (nodes, files) = self.__comm.recv(source=MPI.ANY_SOURCE, tag=TAG_NODE_FIND_NODES_JOIN_RESP, status=status)
+            source = status.Get_source()
+            print("------------------------------------------------YO: '{}' | SOURCE: '{}'").format(self.__rank, source)
+            recv_queue.remove(source)
 
-            listos = [request for request in done_queue if request.test()]
-            for request in listos:
-                    done_queue.remove(request)
-                    nodes, files = request.wait()
+            for n_node in nodes:
+                if n_node[1] not in processed:
+                    send_queue.append(n_node)
 
-                    for file_hash, file_name in files.items():
-                        self.__files[file_hash] = file_name
-
-                    for n_node in nodes:
-                        if n_node not in processed:
-                            send_queue.append(n_node)
+                for file_hash, file_name in files.items():
+                    self.__files[file_hash] = file_name
 
         return nodes_min
 
@@ -407,17 +416,20 @@ class Node(object):
         nodes_min.append((self.__hash, self.__rank))
 
         # Busco entre mis archivos los más cercanos a node que a mí
-        files = self.__get_closest_files(node_hash)
+        files_menor_igual = self.__get_closest_files(node_hash)
+
+        files_menor = self.__get_equal_files(node_hash)
+
+        #agregamos lo de igual distancia a node que a mí
+        files_menor_igual.update(files_menor)
 
         # Envio los nodos más cercanos y los archivos más cercanos a node que tenía yo
-        # data = (nodes_min, files_menor_igual) TODO: Se cambió por:
-        data = (nodes_min, files)
+        data = (nodes_min, files_menor_igual)
+        print("------------------------------------------------YO: '{}' | DEST: '{}'").format(self.__rank, node_rank)
         self.__comm.send(data, dest=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
 
         # Borro de mis archivos los más cercanos a node
-        #self.__files = {k:v for k,v in self.__files.items() if k not in files_menor.keys()}
-        # TODO: Se cambió por:
-        self.__files = {k:v for k,v in self.__files.items() if k not in files.keys()}
+        self.__files = {k:v for k,v in self.__files.items() if k not in files_menor.keys()}
 
         # Actualizo la routing table.
         self.__update_routing_table(node_hash, node_rank)
@@ -430,7 +442,7 @@ class Node(object):
         thing_hash = data
 
         print("[D] [{:02d}] [NODE|FIND-NODES] Buscando nodos más cercanos al hash '{}' pedido por el nodo '{}'".format(self.__rank, thing_hash, source))
-
+        print("------------------------> ESTO ES thing_hash: '{}' ").format(thing_hash)
         nodes_min = self.__get_local_mins(thing_hash)
 
         # Agrego ARBITRARIAMENTE al nodo actual.
@@ -449,7 +461,7 @@ class Node(object):
         print("[D] [{:02d}] [NODE|LOOK-UP] Buscando archivo con hash '{}'".format(self.__rank, file_hash))
         print("[D] [{:02d}] [NODE|LOOK-UP] Tabla de archivos: {}".format(self.__rank, self.__files))
 
-        data = self.__files[file_hash]
+        data = self.__files[file_hash] if file_hash in self.__files.keys() else None
         self.__comm.send(data, dest=source, tag=TAG_NODE_LOOKUP_RESP)
 
     def __handle_node_store_req(self, data):

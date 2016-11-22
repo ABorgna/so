@@ -150,6 +150,7 @@ class Node(object):
             self.__comm.send(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
             nodes = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
 
+            nodes = self.__get_mins(nodes, thing_hash)
             for n_node in nodes:
                 if n_node not in processed: # los que ya consultamos no se agregan
                     queue.append(n_node)
@@ -368,17 +369,19 @@ class Node(object):
         nodes_min.append((self.__hash, self.__rank))
 
         # Busco entre mis archivos los más cercanos a node que a mí
-        files = self.__get_closest_files(node_hash)
+        files_menor_igual = self.__get_closest_files(node_hash)
+
+        files_menor = self.__get_equal_files(node_hash)
+
+        #agregamos lo de igual distancia a node que a mí
+        files_menor_igual.update(files_menor)
 
         # Envio los nodos más cercanos y los archivos más cercanos a node que tenía yo
-        # data = (nodes_min, files_menor_igual) TODO: Se cambió por:
-        data = (nodes_min, files)
+        data = (nodes_min, files_menor_igual)
         self.__comm.send(data, dest=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
 
         # Borro de mis archivos los más cercanos a node
-        #self.__files = {k:v for k,v in self.__files.items() if k not in files_menor.keys()}
-        # TODO: Se cambió por:
-        self.__files = {k:v for k,v in self.__files.items() if k not in files.keys()}
+        self.__files = {k:v for k,v in self.__files.items() if k not in files_menor.keys()}
 
         # Actualizo la routing table.
         self.__update_routing_table(node_hash, node_rank)
@@ -410,7 +413,7 @@ class Node(object):
         print("[D] [{:02d}] [NODE|LOOK-UP] Buscando archivo con hash '{}'".format(self.__rank, file_hash))
         print("[D] [{:02d}] [NODE|LOOK-UP] Tabla de archivos: {}".format(self.__rank, self.__files))
 
-        data = self.__files[file_hash]
+        data = self.__files[file_hash] if file_hash in self.__files.keys() else None
         self.__comm.send(data, dest=source, tag=TAG_NODE_LOOKUP_RESP)
 
     def __handle_node_store_req(self, data):
@@ -619,6 +622,7 @@ if __name__ == "__main__":
         console = Console(rank)
         console.run()
     else:
-        node_id = int(random.uniform(0, 2**K))
+        #node_id = int(random.uniform(0, 2**K))
+        node_id = rank
         node = Node(rank, node_id)
         node.run()
