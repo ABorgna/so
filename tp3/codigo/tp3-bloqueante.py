@@ -139,6 +139,8 @@ class Node(object):
     # Código nuestro
     ###################
         processed.add((self.__hash, self.__rank))
+        contact_nodes = [node for node in contact_nodes if node[1] != self.__rank]
+
         data = thing_hash
         for c_node in queue:
             c_node_hash, c_node_rank = c_node
@@ -150,6 +152,8 @@ class Node(object):
             self.__comm.send(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
             nodes = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
 
+            # convierto a dict
+            nodes = {node_hash: node_rank for node_hash, node_rank in nodes}
             # me muevo por los mínimos
             nodes = self.__get_mins(nodes, thing_hash)
 
@@ -170,6 +174,8 @@ class Node(object):
     ################
         processed = set()
         processed.add((self.__hash, self.__rank))
+        contact_nodes = [node for node in contact_nodes if node[1] != self.__rank]
+
         queue = contact_nodes
 
         for node_hash, node_rank in queue:

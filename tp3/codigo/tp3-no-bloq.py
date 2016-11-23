@@ -152,7 +152,7 @@ class Node(object):
             processed.add((c_node_hash, c_node_rank))
             nodes_min[c_node_hash] = c_node_rank
             req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
-            recv_queue.append((req, c_node_rank))
+            recv_queue.append(c_node_rank)
 
         while len(send_queue) or len(recv_queue):
 
@@ -169,6 +169,8 @@ class Node(object):
             source = status.Get_source()
             recv_queue.remove(source)
 
+            # convierto a dict
+            nodes = {node_hash: node_rank for node_hash, node_rank in nodes}
             # me quedo con los mínimos
             nodes = self.__get_mins(nodes, thing_hash)
 

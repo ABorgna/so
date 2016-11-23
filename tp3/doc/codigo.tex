@@ -1,0 +1,31 @@
+\section{Código}
+Se nos pidió implementar las funciones \emph{find nodes'}, \emph{'handle console lookup'}, \emph{'handle console store'} y \emph{'find nodes join'}, estos últimos también en sus variantes no bloqueantes. A continuación vamos a explicar las decisiones que tomamos en cada una de ellas.
+
+    \subsection{find\_nodes}
+        \subsubsection{Bloqueante}
+            El algoritmo es simple: comenzando por los nodos de contacto iniciales distintos del nodo actual (no tiene sentido consultarme a mi mismo como nodo por nodos cercanos) vamos enviando requests, luego bloqueamos para esperar una nueva lista de nodos de contacto. De estos últimos, consideraremos para repetir las consultas anteriores únicamente los de menor distancia a \emph{thing\_hash}. De esta manera, siempre vamos a recorrer las ramas de mínimas distancias, lo cual podría significar llegar a un mínimo local y no poder seguir iterando las consultas aún cuando hay nodos más cercanos en el sistema.
+            Tampoco se consulta dos veces a un mismo nodo, porque los marcamos como 'procesados'.
+
+            Finalmente devolvemos todos los nodos que hemos consultado.
+
+            Si bien solo nos interesan, en general, los nodos de mínima distancia al hash, decidimos (como solamente se usa la función para look-up y store, que codeamos nosotros) filtrar por separado los mínimos, es decir luego de llamar a find\_nodes, aunque se podría hacer antes del return de la misma find\_nodes. En cualquier caso, el resultado es el mismo.
+        \subsubsection{No bloqueante}
+            Para la versión no bloqueante contamos con dos listas que utilizaremos como colas: \emph{send\_queue} y \emph{recv\_queue}. En la primera van todos los nodos de contactos a los cuales les vamos a enviar un request, y en la segunda a aquellos a quienes ya consultamos pero todavía no recibimos los datos.
+
+            Primero nos encargamos de enviar de manera no bloqueante el request a todos los contactos iniciales, marcandolos como procesados e ingresandolos a la lista recv\_queue.
+
+            Luego, mientras tanto la lista de sends o recvs sean no vacías (es decir, hay algo para enviar o recibir) vamos a iterar enviando sends (nuevamente, no bloqueantes). Una vez realizados los sends, como no queda nada más por hacer hasta que algún nodo de contacto haya procesado el request, es necesario bloqueamos a la espera de una respuesta de cualquier fuente para luego agregar sus datos a la tabla de archivos y a la cola de envíos (solamente los mínimos de los nodos recibidos).
+
+    \subsection{find\_nodes\_join}
+            En ambas variantes es extremadamente similar a find\_nodes, salvo que nos interesa verdaderamente recorrer toda la red al inicializarnos y, por lo tanto, no vamos a filtrar mínimos en cada consulta por más nodos de contacto. Nuevamente no devolvemos la lista de nodos filtrada con los mínimos, dado que el handle que la llama se encarga de ordenar y tomar los K primeros de todos modos.
+
+    \subsection{store}
+            Buscamos a través de nuestros mínimos locales respecto del hash del archivo una nueva lista de nodos conseguida a través de find\_nodes. Luego filtramos la lista, quedándonos únicamente con los más cercanos al hash.
+
+            Si la distancia al hash del archivo respecto del nodo actual es menor o igual a la de los mínimos conseguidos, entonces el nodo actual se guarda el archivo. Luego le indico a los mínimos que lo guarden (si es que no están a mayor distancia, de lo contrario el nodo actual es el más cercano o encontramos mínimos locales pero no globales).
+    \subsection{look-up}
+            Igual que en store empiezo por mis mínimos locales propagando mi consulta, luego me quedo con los mínimos (en distancia respecto del hash del archivo) de todos los nodos que conseguí.
+
+            Si el nodo actual tiene el archivo en su tabla, entonces no hace falta consultarle a los mínimos y simplemente lo devuelvo.
+
+            De lo contrario, consulto a cada uno de los mínimos. Como podemos entrar en mínimos locales a la hora de buscar o de guardar, es posible que los mínimos no tengan el archivo. Para poder seguir ejecutando, nos tomamos la libertad de modificar el código del handle de node para look-up haciendo que pregunte si el archivo está en la tabla antes de accederla y de lo contrario devolver \emph{None} para evitar errores de python. Si alguno de los mínimos me devuelve un nombre que coincide con el hash recibido, entonces termina de manera exitosa y no hace falta seguir recorriendo.

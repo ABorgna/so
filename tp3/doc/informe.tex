@@ -1,0 +1,110 @@
+\documentclass[hidelinks,a4paper,12pt, nofootinbib]{article}
+\usepackage[nounderscore]{syntax}
+\usepackage[left=3cm, top=2.5cm, right=2cm, left=2.5cm]{geometry}
+\usepackage[spanish, es-tabla]{babel} %es-tabla es para que ponga Tabla en vez de Cuadro en el caption
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{xspace}
+\usepackage{xargs}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{caratula}
+\usepackage[bottom]{footmisc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{xcolor,colortbl}
+\usepackage{amsthm}
+\usepackage{soul}
+\usepackage{hyperref}
+\usepackage[titletoc]{appendix}
+\usepackage{pgf}
+\usepackage{graphicx}
+\usepackage{sidecap}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{amsmath}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{listingsutf8}
+\usepackage{enumitem}
+
+%\usepackage{pbox}
+
+
+
+%\usepackage{minted}
+
+\graphicspath{ {../simusched/out/} }
+
+\definecolor{litegrey}{gray}{0.94}
+
+%Formato de los links
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = blue, %Colour of internal links
+  citecolor   = red %Colour of citations
+}
+
+\lstset{ %
+  backgroundcolor=\color{litegrey},
+  basicstyle=\footnotesize,
+  breakatwhitespace=true,
+  breaklines=true,
+  captionpos=b,                    % sets the caption-position to bottom
+  mathescape=true,
+  keepspaces=true,
+  language=Python,
+  showspaces=false,
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  inputencoding=utf8/latin1
+}
+
+\usepackage{comment}
+
+\captionsetup[table]{labelsep=space}
+
+
+\setlength{\parindent}{4em}
+\setlength{\parskip}{0.5em}
+
+
+%%fancyhdr
+\pagestyle{fancy}
+\thispagestyle{fancy}
+\addtolength{\headheight}{1pt}
+\lhead{Sistemas Operativos: TP1}
+\rhead{$2º$ cuatrimestre de 2016}
+\cfoot{\thepage\ / \pageref{LastPage}}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\labelitemi}{$\bullet$}
+
+%%caratula
+\materia{Sistemas Operativos}
+\titulo{TP 3}
+\subtitulo{MPI}
+\grupo{}
+\integrante{Borgna, Agustín}{79/15}{aborgna@dc.uba.ar}
+\integrante{Gatti, Mathias}{477/14}{mathigatti@gmail.com}
+\integrante{Lancioni, Franco}{234/15}{glancioni@dc.uba.ar}
+
+\fecha{7 de septiembre de 2016}
+
+\usepackage{etoolbox}
+\AtBeginEnvironment{tikzpicture}{\shorthandoff{>}\shorthandoff{<}}{}{}
+\newcommand{\cupdot}{\mathbin{\mathaccent\cdot\cup}}
+\title{tp-so}
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+\input{codigo}
+\newpage
+\input{tests}
+
+\end{document}
