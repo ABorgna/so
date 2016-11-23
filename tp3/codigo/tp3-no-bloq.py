@@ -195,12 +195,14 @@ class Node(object):
         recv_queue = []
 
         processed.add(self.__rank)
+
+        #no me voy a contactar conmigo
+
         contact_nodes = [node for node in contact_nodes if node[1] != self.__rank]
         # proceso los iniciales
         for c_node_hash, c_node_rank in contact_nodes:
             processed.add(c_node_rank)
-            distancia = distance(c_node_hash, self.__hash)
-            nodes_min.add((c_node_hash, c_node_rank, distancia))
+            nodes_min.add((c_node_hash, c_node_rank))
 
             # node_rank modifica data cuando la recibe, copiamos cada vez:
             data = self.__hash, self.__rank
@@ -212,7 +214,7 @@ class Node(object):
             # enviamos lo que haya por enviar
             for c_node_hash, c_node_rank in send_queue:
                 processed.add(c_node_rank)
-                nodes_min.add((c_node_hash, c_node_rank, distancia))
+                nodes_min.add((c_node_hash, c_node_rank))
 
                 # node_rank modifica data cuando la recibe, copiamos cada vez:
                 data = self.__hash, self.__rank
@@ -232,8 +234,8 @@ class Node(object):
                 if n_node[1] not in processed:
                     send_queue.append(n_node)
 
-                for file_hash, file_name in files.items():
-                    self.__files[file_hash] = file_name
+            for file_hash, file_name in files.items():
+                self.__files[file_hash] = file_name
 
         return nodes_min
 
@@ -289,6 +291,8 @@ class Node(object):
             # Propago consulta de find nodes a traves de los minimos de mi nodo
             # de contacto inicial.
             nodes_min = self.__find_nodes_join(data)
+            # expando con un dato que sea la distancia.
+            nodes_min = [(node_hash, node_rank, distance(node_hash, self.__hash)) for node_hash, node_rank in nodes_min]
 
             # obtengo los K mínimos
             nodes_min = sorted(nodes_min, key=lambda x: x[2])
@@ -350,11 +354,11 @@ class Node(object):
         elif mi_distancia == distancia_min:
             self.__files[file_hash] = file_name
 
-        # les digo que guarden el archivo
+        # Envio el archivo a los nodos más cercanos
         for (h, r) in nodes_min:
             self.__comm.send(data, dest=r, tag=TAG_NODE_STORE_REQ)
 
-            # Envio el archivo a los nodos más cercanos
+
 
     # Busca el archivo entre los más cercanos, a partir del nodo fuente. Les va consultando a cada uno los más cercanos
     # con __finde_nodes
@@ -415,17 +419,12 @@ class Node(object):
         # Agrego ARBITRARIAMENTE al nodo actual.
         nodes_min.append((self.__hash, self.__rank))
 
-        # Busco entre mis archivos los más cercanos a node que a mí
-        files_menor_igual = self.__get_closest_files(node_hash)
-
-        files_menor = self.__get_equal_files(node_hash)
-
-        #agregamos lo de igual distancia a node que a mí
+        # Busco entre mis archivos los más cercanos a node que a mí.
+        files_menor = self.__get_closest_files(node_hash)
+        files_menor_igual = self.__get_equal_files(node_hash)
         files_menor_igual.update(files_menor)
-
         # Envio los nodos más cercanos y los archivos más cercanos a node que tenía yo
         data = (nodes_min, files_menor_igual)
-        print("------------------------------------------------YO: '{}' | DEST: '{}'").format(self.__rank, node_rank)
         self.__comm.send(data, dest=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
 
         # Borro de mis archivos los más cercanos a node
@@ -442,7 +441,7 @@ class Node(object):
         thing_hash = data
 
         print("[D] [{:02d}] [NODE|FIND-NODES] Buscando nodos más cercanos al hash '{}' pedido por el nodo '{}'".format(self.__rank, thing_hash, source))
-        print("------------------------> ESTO ES thing_hash: '{}' ").format(thing_hash)
+
         nodes_min = self.__get_local_mins(thing_hash)
 
         # Agrego ARBITRARIAMENTE al nodo actual.
@@ -670,6 +669,7 @@ if __name__ == "__main__":
         console = Console(rank)
         console.run()
     else:
-        node_id = int(random.uniform(0, 2**K))
+        # node_id = int(random.uniform(0, 2**K))
+        node_id = rank
         node = Node(rank, node_id)
         node.run()

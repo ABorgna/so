@@ -135,9 +135,9 @@ class Node(object):
         processed = set()
         nodes_min = {}
 
-	###################
-	# Código nuestro
-	###################
+    ###################
+    # Código nuestro
+    ###################
         processed.add((self.__hash, self.__rank))
         data = thing_hash
         for c_node in queue:
@@ -150,7 +150,9 @@ class Node(object):
             self.__comm.send(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
             nodes = self.__comm.recv(source=c_node_rank, tag=TAG_NODE_FIND_NODES_RESP)
 
+            # me muevo por los mínimos
             nodes = self.__get_mins(nodes, thing_hash)
+
             for n_node in nodes:
                 if n_node not in processed: # los que ya consultamos no se agregan
                     queue.append(n_node)
@@ -162,9 +164,10 @@ class Node(object):
     # que le correspondería tener a él
     def __find_nodes_join(self, contact_nodes):
         nodes_min = set()
-	################
-	# Código nuestro
-	################
+
+    ################
+    # Código nuestro
+    ################
         processed = set()
         processed.add((self.__hash, self.__rank))
         queue = contact_nodes
@@ -172,8 +175,7 @@ class Node(object):
         for node_hash, node_rank in queue:
                 # marco como vistos e inserto en los mínimos
                 processed.add((node_hash, node_rank))
-                distancia = distance(node_hash, self.__hash)
-                nodes_min.add((node_hash, node_rank, distancia))
+                nodes_min.add((node_hash, node_rank))
 
                 # node_rank modifica data cuando la recibe, copiamos cada vez:
                 data = self.__hash, self.__rank
@@ -242,6 +244,8 @@ class Node(object):
             # Propago consulta de find nodes a traves de los minimos de mi nodo
             # de contacto inicial.
             nodes_min = self.__find_nodes_join(data)
+            # expando con un dato que sea la distancia.
+            nodes_min = [(node_hash, node_rank, distance(node_hash, self.__hash)) for node_hash, node_rank in nodes_min]
 
             # obtengo los K mínimos
             nodes_min = sorted(nodes_min, key=lambda x: x[2])
@@ -303,7 +307,7 @@ class Node(object):
         elif mi_distancia == distancia_min:
             self.__files[file_hash] = file_name
 
-        # les digo que guarden el archivo
+        # Envio el archivo a los nodos más cercanos
         for (h, r) in nodes_min:
             self.__comm.send(data, dest=r, tag=TAG_NODE_STORE_REQ)
 
@@ -368,14 +372,10 @@ class Node(object):
         # Agrego ARBITRARIAMENTE al nodo actual.
         nodes_min.append((self.__hash, self.__rank))
 
-        # Busco entre mis archivos los más cercanos a node que a mí
-        files_menor_igual = self.__get_closest_files(node_hash)
-
-        files_menor = self.__get_equal_files(node_hash)
-
-        #agregamos lo de igual distancia a node que a mí
+        # Busco entre mis archivos los más cercanos a node que a mí.
+        files_menor = self.__get_closest_files(node_hash)
+        files_menor_igual = self.__get_equal_files(node_hash)
         files_menor_igual.update(files_menor)
-
         # Envio los nodos más cercanos y los archivos más cercanos a node que tenía yo
         data = (nodes_min, files_menor_igual)
         self.__comm.send(data, dest=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
@@ -622,7 +622,7 @@ if __name__ == "__main__":
         console = Console(rank)
         console.run()
     else:
-        #node_id = int(random.uniform(0, 2**K))
+        # node_id = int(random.uniform(0, 2**K))
         node_id = rank
         node = Node(rank, node_id)
         node.run()
