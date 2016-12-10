@@ -163,6 +163,7 @@ class Node(object):
                 req = self.__comm.isend(data, dest=c_node_rank, tag=TAG_NODE_FIND_NODES_REQ)
                 recv_queue.append(c_node_rank)
 
+            send_queue = []
             # ya le envié a todos los que podía, no puedo seguir haciendo nada hasta que me sigan mandando
             status = MPI.Status()
             nodes = self.__comm.recv(source=MPI.ANY_SOURCE, tag=TAG_NODE_FIND_NODES_RESP, status=status)

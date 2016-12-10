@@ -14,7 +14,7 @@ Se nos pidió implementar las funciones \emph{find nodes'}, \emph{'handle consol
 
             Primero nos encargamos de enviar de manera no bloqueante el request a todos los contactos iniciales, marcandolos como procesados e ingresandolos a la lista recv\_queue.
 
-            Luego, mientras tanto la lista de sends o recvs sean no vacías (es decir, hay algo para enviar o recibir) vamos a iterar enviando sends (nuevamente, no bloqueantes). Una vez realizados los sends, como no queda nada más por hacer hasta que algún nodo de contacto haya procesado el request, es necesario bloqueamos a la espera de una respuesta de cualquier fuente para luego agregar sus datos a la tabla de archivos y a la cola de envíos (solamente los mínimos de los nodos recibidos).
+            Luego, mientras tanto la lista de sends o recvs sean no vacías (es decir, hay algo para enviar o recibir) vamos a iterar enviando sends (nuevamente, no bloqueantes). Una vez realizados los sends, como no queda nada más por hacer hasta que algún nodo de contacto haya procesado el request, \textbf{es necesario bloquearnos a la espera de una respuesta de cualquier fuente} para luego agregar sus datos a la tabla de archivos y a la cola de envíos (solamente los mínimos de los nodos recibidos).
 
     \subsection{find\_nodes\_join}
             En ambas variantes es extremadamente similar a find\_nodes, salvo que nos interesa verdaderamente recorrer toda la red al inicializarnos y, por lo tanto, no vamos a filtrar mínimos en cada consulta por más nodos de contacto. Nuevamente no devolvemos la lista de nodos filtrada con los mínimos, dado que el handle que la llama se encarga de ordenar y tomar los K primeros de todos modos.
