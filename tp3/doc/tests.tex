@@ -3,21 +3,112 @@
 Para comprobar el correcto funcionamiento de las funciones anteriores vamos a hacer un seguimiento de un conjunto de operaciones específicadas en \emph{t1.txt} sobre 4 nodos.
 
 \begin{itemize}
-        \item \textbf{j 1:} Llega el nodo con rank 1, que pasará a ser el nodo de contacto inicial. Se inicializa con hash:
+    \item \textbf{j 1:} Llega el nodo con rank 1, que pasará a ser el nodo de contacto inicial.
+        Se inicializa con hash:
 
-        48635463943209834798109814161294753926839975257569795305637098542720658922315L.
-        \item \textbf{s 1 a1:} Llega el archivo s1 con hash:
+        48635463943209834798109814161294753926839975257569795305637098542720658922315.
 
-        110986164698320180327942133831752629430491002266485370052238869825166557303060, como el nodo 1 es el único, solo él lo guarda.
-        \item \textbf{s 1 a2:} Al igual que antes, el nodo 1 almacena el archivo a2 con hash:
+    \item \textbf{s 1 a1:} Llega el archivo a1 con hash:
 
-        20004699973444259106832769305100157129890497967822946728731731367322388695815L.
-        \item \textbf{j 2:} Llega el nodo 2 a la red, con hash:
+        110986164698320180327942133831752629430491002266485370052238869825166557303060,
+        como el nodo 1 es el único, solo él lo guarda.
 
-        96094161643976066833367867971426158458230048495430276217795328666133331159861L. Se comunica con el nodo de contacto 1 por nodos cercanos, este no encuentra otros nodos (más que el mismo) para enviar y no encuentra tampoco archivos con menor distancia al hash del nodo 2 que él mismo:
-        
-        distance(hash\_fn("1"),hash\_fn(''a1")) = 119 < 122 = distance(hash\_fn("2"),hash\_fn(''a1")) y lo mismo para a2:
+    \item \textbf{s 1 a2:} Al igual que antes, el nodo 1 almacena el archivo a2 con hash:
+
+        20004699973444259106832769305100157129890497967822946728731731367322388695815.
+
+    \item \textbf{j 2:} Llega el nodo 2 a la red, con hash:
+
+        96094161643976066833367867971426158458230048495430276217795328666133331159861.
+
+        Se comunica con el nodo de contacto 1 por nodos cercanos, este no encuentra
+        otros nodos (más que el mismo) para enviar y no encuentra tampoco archivos con
+        menor distancia al hash del nodo 2 que él mismo:
+
+        distance(hash\_fn("1"),hash\_fn(''a1")) = 119 < 122 = distance(hash\_fn("2"),hash\_fn(''a1"))
+
+        y lo mismo para a2:
+
         distance(hash\_fn("1"),hash\_fn(''a2")) = 118 < 127 = distance(hash\_fn("2"),hash\_fn(''a2"))).
-        \item \textbf{}
+
+    \item \textbf{j 3:} Llega el nodo 3 a la red, con hash:
+
+        35293215426786447154857697798367884701614677727176325092965345248689205321678
+
+        Se comunica con el nodo de contacto 1, este lo agrega a su propia tabla de ruteo
+        y le envía de vuelta el ruteo al nodo 2. Además, el nodo 1 envía el hash del nodo 3
+        al nodo 2.
+
+        Como ambos archivos quedan a menor distancia del nodo 1 que del 3, no se produce
+        migración de estos.
+
+        Para a1:
+
+        distance(hash\_fn("1"),hash\_fn(''a1")) = 119 < 136 = distance(hash\_fn("3"),hash\_fn(''a1"))).
+
+        Y para a2:
+
+        distance(hash\_fn("1"),hash\_fn(''a2")) = 118 < 133 = distance(hash\_fn("3"),hash\_fn(''a2"))).
+
+    \item \textbf{l 3 a1:} Leemos el archivo a1 desde el nodo 3
+
+        El nodo 3 busca el nodo con menor distancia a a1 entre los de su tabla de ruteo,
+        selecciona al nodo 1, y le envía el hash del archivo.
+
+        El nodo 1 encuentra al archivo a1 entre los que tiene almacenados, y se lo envía al
+        nodo 3.
+
+    \item \textbf{s 3 a3:} Llega el archivo a3 al nodo 3 con hash:
+
+        110558374480492830394381912301702732669425904788263259158895862965223613393983
+
+        con distancias
+
+        distance(hash\_fn("1"),hash\_fn(''a3")) = 134
+
+        distance(hash\_fn("2"),hash\_fn(''a3")) = 109
+
+        distance(hash\_fn("3"),hash\_fn(''a3")) = 127
+
+        El nodo 3 busca el nodo con menor distancia al archivo entre los de su tabla,
+        y se lo envía al nodo 2.
+
+        Como el nodo 2 no conoce ningún otro nodo mas cercano al archivo a3, lo almacena.
+
+    \item \textbf{j 4:} Llega el nodo 4 a la red, con hash:
+
+        33984360982413536682390860969296307922929415152052354251133793603654468157322
+
+        Se comunica con el nodo de contacto 1, este lo agrega a su propia tabla de ruteo.
+        Luego busca entre los nodos que conoce al mas cercano al nodo 4 y le envía al nodo
+        2 la el hash de este. El nodo 2 no conoce a ningún otro nodo mas cercano, por lo que
+        solo lo agrega a su tabla de ruteo. Finalmente, el nodo 1 responde al nodo 4
+        con el hash del nodo 2, para que este lo agregue a su tabla de ruteo.
+
+        Como todos los archivos están a una distancia mayor del nodo 4 que de su nodo actual,
+        no hay migraciones.
+
+        distance(hash\_fn("1"),hash\_fn(''a1")) = 119 < 121 = distance(hash\_fn("4"),hash\_fn(''a1"))).
+        distance(hash\_fn("1"),hash\_fn(''a2")) = 118 < 132 = distance(hash\_fn("4"),hash\_fn(''a2"))).
+        distance(hash\_fn("2"),hash\_fn(''a3")) = 109 < 140 = distance(hash\_fn("4"),hash\_fn(''a3"))).
+
+    \item \textbf{l 4 a2:} Leemos el archivo a2 desde el nodo 4
+
+        El nodo 4 busca el nodo con menor distancia a a2 entre los de su tabla de ruteo,
+        selecciona al nodo 1, y le envía el hash del archivo.
+
+        El nodo 1 encuentra al archivo a2 entre los que tiene almacenados, y se lo envía al
+        nodo 4.
+
+    \item \textbf{l 4 a3:} Leemos el archivo a3 desde el nodo 4
+
+        El nodo 4 busca el nodo con menor distancia a a3 entre los de su tabla de ruteo,
+        selecciona al nodo 2, y le envía el hash del archivo.
+
+        El nodo 2 encuentra al archivo a3 entre los que tiene almacenados, y se lo envía al
+        nodo 4.
 
 \end{itemize}
+
+Se puede ver, al correr la versión bloqueante, de que el log al ejecutar el test presenta el mismo comportamiento especificado anteriormente y las funciones que implementamos se comportaron como esperábamos. En el caso de la versión no bloqueante, debido al comportamiento no determinístico (consecuencia de que al propagar consultas a través de nodos de contacto recibimos las respuestas sin un orden específico) podría variar el resultado pero, en casi todos los casos que probamos el comportamiento fue el mismo.
+
