@@ -1,1 +1,23 @@
 \section{Tests}
+
+Para comprobar el correcto funcionamiento de las funciones anteriores vamos a hacer un seguimiento de un conjunto de operaciones específicadas en \emph{t1.txt} sobre 4 nodos.
+
+\begin{itemize}
+        \item \textbf{j 1:} Llega el nodo con rank 1, que pasará a ser el nodo de contacto inicial. Se inicializa con hash:
+
+        48635463943209834798109814161294753926839975257569795305637098542720658922315L.
+        \item \textbf{s 1 a1:} Llega el archivo s1 con hash:
+
+        110986164698320180327942133831752629430491002266485370052238869825166557303060, como el nodo 1 es el único, solo él lo guarda.
+        \item \textbf{s 1 a2:} Al igual que antes, el nodo 1 almacena el archivo a2 con hash:
+
+        20004699973444259106832769305100157129890497967822946728731731367322388695815L.
+        \item \textbf{j 2:} Llega el nodo 2 a la red, con hash:
+
+        96094161643976066833367867971426158458230048495430276217795328666133331159861L. Se comunica con el nodo de contacto 1 por nodos cercanos, este no encuentra otros nodos (más que el mismo) para enviar y no encuentra tampoco archivos con menor distancia al hash del nodo 2 que él mismo:
+        
+        distance(hash\_fn("1"),hash\_fn(''a1")) = 119 < 122 = distance(hash\_fn("2"),hash\_fn(''a1")) y lo mismo para a2:
+        distance(hash\_fn("1"),hash\_fn(''a2")) = 118 < 127 = distance(hash\_fn("2"),hash\_fn(''a2"))).
+        \item \textbf{}
+
+\end{itemize}
