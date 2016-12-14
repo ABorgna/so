@@ -176,7 +176,7 @@ class Node(object):
             nodes = self.__get_mins(nodes, thing_hash)
 
             for n_node in nodes:
-                if n_node not in processed and n_node not in queue:
+                if n_node not in processed:
                     send_queue.append(n_node)
 
         return nodes_min
@@ -234,7 +234,7 @@ class Node(object):
             recv_queue.remove(source)
 
             for n_node in nodes:
-                if n_node[1] not in processed and n_node not in queue:
+                if n_node[1] not in processed:
                     send_queue.append(n_node)
 
             for file_hash, file_name in files.items():
