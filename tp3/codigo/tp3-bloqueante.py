@@ -158,7 +158,8 @@ class Node(object):
             nodes = self.__get_mins(nodes, thing_hash)
 
             for n_node in nodes:
-                if n_node not in processed: # los que ya consultamos no se agregan
+                if n_node not in processed and n_node not in queue:
+                    # los que ya consultamos (o ya sabemos que vamos a consultar) no se agregan
                     queue.append(n_node)
 
         return nodes_min
@@ -194,7 +195,7 @@ class Node(object):
 
                 # nuevos nodos para consultar
                 for node in nodes:
-                    if node not in processed:
+                    if node not in processed and node not in queue:
                         queue.append(node)
         return nodes_min
 
@@ -382,6 +383,7 @@ class Node(object):
         files_menor = self.__get_closest_files(node_hash)
         files_menor_igual = self.__get_equal_files(node_hash)
         files_menor_igual.update(files_menor)
+        print("[D] [{:02d}] [NODE|JOIN] files_menor_igual: {}".format(self.__rank, files_menor_igual))
         # Envio los nodos más cercanos y los archivos más cercanos a node que tenía yo
         data = (nodes_min, files_menor_igual)
         self.__comm.send(data, dest=node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)

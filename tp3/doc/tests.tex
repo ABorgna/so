@@ -36,8 +36,7 @@ Para comprobar el correcto funcionamiento de las funciones anteriores vamos a ha
         35293215426786447154857697798367884701614677727176325092965345248689205321678
 
         Se comunica con el nodo de contacto 1, este lo agrega a su propia tabla de ruteo
-        y le envía de vuelta el ruteo al nodo 2. Además, el nodo 1 envía el hash del nodo 3
-        al nodo 2.
+        y este le envía el contacto del nodo 2 el cual, al recibir el request de join, lo agrega a tu tabla de ruteo sin enviarle archivos dado que su tabla de archivos es vacía.
 
         Como ambos archivos quedan a menor distancia del nodo 1 que del 3, no se produce
         migración de estos.
@@ -111,4 +110,3 @@ Para comprobar el correcto funcionamiento de las funciones anteriores vamos a ha
 \end{itemize}
 
 Se puede ver, al correr la versión bloqueante, de que el log al ejecutar el test presenta el mismo comportamiento especificado anteriormente y las funciones que implementamos se comportaron como esperábamos. En el caso de la versión no bloqueante, debido al comportamiento no determinístico (consecuencia de que al propagar consultas a través de nodos de contacto recibimos las respuestas sin un orden específico) podría variar el resultado pero, en casi todos los casos que probamos el comportamiento fue el mismo.
-
